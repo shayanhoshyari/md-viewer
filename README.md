@@ -4,6 +4,8 @@ A local markdown viewer, packaged as a [Claude Code](https://claude.com/claude-c
 
 It exists because VS Code's markdown preview shows one page at a time. Here every page has its own URL, so you can open many documents side by side in browser tabs.
 
+![md-viewer showing its own DESIGN.md](https://github.com/user-attachments/assets/55b348c7-070e-4e5f-a87a-8d622aae6f1a)
+
 You can also leave notes on the rendered page. They are saved into the file as `<!-- note: … -->` lines, and Claude can then be asked to "check the notes" and act on them.
 
 > [!NOTE]
