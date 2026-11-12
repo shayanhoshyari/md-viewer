@@ -2,6 +2,8 @@
 
 A local markdown viewer, packaged as a [Claude Code](https://claude.com/claude-code) skill. Point it at a folder and it serves the markdown and source files as browsable pages: section numbers, a table of contents, a file tree, Mermaid and PlantUML diagrams, LaTeX math, and PDF export. A Diff tab shows git changes, source or rendered, beside a source control panel.
 
+It exists because VS Code's markdown preview shows one page at a time. Here every page has its own URL, so you can open many documents side by side in browser tabs.
+
 You can also leave notes on the rendered page. They are saved into the file as `<!-- note: … -->` lines, and Claude can then be asked to "check the notes" and act on them.
 
 > [!NOTE]
