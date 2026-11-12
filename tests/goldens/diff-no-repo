@@ -1,0 +1,43 @@
+status: 200
+content-type: text/html; charset=utf-8
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>alone.md</title>
+  <link rel="preconnect" href="https://esm.sh" crossorigin>
+  <link rel="stylesheet" href="/_static/pygments.css">
+  <link rel="stylesheet" href="/_static/style.css">
+  <script>
+    try { if (localStorage.getItem("navHidden")) document.documentElement.classList.add("nav-hidden"); } catch (e) {}
+    window.__shikiVersion = "3.23.0";
+    window.__shikiTheme = "light-plus";
+  </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+  <script type="module">
+    import katex from "https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.mjs";
+    for (const el of document.querySelectorAll(".markdown-body .math")) {
+      katex.render(el.textContent, el, { displayMode: el.classList.contains("block"), throwOnError: false });
+    }
+  </script>
+</head>
+<body>
+  <aside class="sidebar">
+    <details class="servers"><summary title="<root>">loose0</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details>
+    <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
+    <ul class="tree-root"><li><a href="/alone.md">alone.md</a></li></ul>
+  </aside>
+  <main class="content">
+    <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
+    <div class="path">alone.md<div class="views"><a href="/alone.md">Rendered</a><a href="/alone.md?view=diff" class="active">Diff</a><a href="/alone.md?view=source">Source</a><a href="/alone.md?view=raw">Raw</a><a href="/alone.md?view=pdf">PDF</a></div></div>
+    <p class="diff-label">Not in a git repository.</p>
+  </main>
+  <script type="module" src="/_static/client.js"></script>
+</body>
+</html>

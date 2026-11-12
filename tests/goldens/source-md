@@ -1,0 +1,55 @@
+status: 200
+content-type: text/html; charset=utf-8
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>doc.md</title>
+  <link rel="preconnect" href="https://esm.sh" crossorigin>
+  <link rel="stylesheet" href="/_static/pygments.css">
+  <link rel="stylesheet" href="/_static/style.css">
+  <script>
+    try { if (localStorage.getItem("navHidden")) document.documentElement.classList.add("nav-hidden"); } catch (e) {}
+    window.__shikiVersion = "3.23.0";
+    window.__shikiTheme = "light-plus";
+  </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+  <script type="module">
+    import katex from "https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.mjs";
+    for (const el of document.querySelectorAll(".markdown-body .math")) {
+      katex.render(el.textContent, el, { displayMode: el.classList.contains("block"), throwOnError: false });
+    }
+  </script>
+</head>
+<body>
+  <aside class="sidebar">
+    <details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details>
+    <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
+    <ul class="tree-root"><li class="dir"><details><summary>docs/</summary><ul>
+<li><a href="/docs/README.md">README.md</a></li>
+</ul></details></li>
+<li class="dir"><details><summary>notes/</summary><ul>
+<li><a href="/notes/data.json">data.json</a></li>
+</ul></details></li>
+<li><a href="/clean.md">clean.md</a></li>
+<li><a href="/code.py">code.py</a></li>
+<li><a href="/dirty.md">dirty.md</a></li>
+<li><a href="/doc.md">doc.md</a></li>
+<li><a href="/escape.md">escape.md</a></li>
+<li><a href="/new.md">new.md</a></li>
+<li><a href="/nonum.md">nonum.md</a></li></ul>
+  </aside>
+  <main class="content">
+    <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
+    <div class="path">doc.md<div class="views"><a href="/doc.md">Rendered</a><a href="/doc.md?view=diff">Diff</a><a href="/doc.md?view=source" class="active">Source</a><a href="/doc.md?view=raw">Raw</a><a href="/doc.md?view=pdf">PDF</a></div></div>
+    <div class="code-block with-linenos" data-lang="markdown"><pre><code><span class="line" id="L-1">---</span><span class="line" id="L-2">title: Fixture</span><span class="line" id="L-3"><span class="gu">tags: [test]</span></span><span class="line" id="L-4"><span class="gu">---</span></span><span class="line" id="L-5"></span><span class="line" id="L-6"><span class="gh"># Every feature</span></span><span class="line" id="L-7"></span><span class="line" id="L-8">Intro paragraph with a footnote[^1] and a link to https://example.com.</span><span class="line" id="L-9"></span><span class="line" id="L-10"><span class="gu">## Setup</span></span><span class="line" id="L-11"></span><span class="line" id="L-12">Some <span class="sb">`inline code`</span> and <span class="gd">~~struck~~</span> text.</span><span class="line" id="L-13"></span><span class="line" id="L-14"><span class="gu">### Details</span></span><span class="line" id="L-15"></span><span class="line" id="L-16"><span class="k">- [x]</span> done</span><span class="line" id="L-17"><span class="k">- [ ]</span> open</span><span class="line" id="L-18"></span><span class="line" id="L-19"><span class="gu">## Callouts</span></span><span class="line" id="L-20"></span><span class="line" id="L-21"><span class="k">&gt; </span><span class="ge">[!NOTE]</span></span><span class="line" id="L-22"><span class="k">&gt; </span><span class="ge">A note with **bold** text.</span></span><span class="line" id="L-23"></span><span class="line" id="L-24"><span class="k">&gt; </span><span class="ge">[!WARNING] Careful</span></span><span class="line" id="L-25"><span class="k">&gt; </span><span class="ge">Text on the next line.</span></span><span class="line" id="L-26"></span><span class="line" id="L-27"><span class="k">&gt; </span><span class="ge">[!TIP]</span></span><span class="line" id="L-28"></span><span class="line" id="L-29"><span class="k">&gt; </span><span class="ge">A plain quote.</span></span><span class="line" id="L-30"></span><span class="line" id="L-31"><span class="gu">## Tables</span></span><span class="line" id="L-32"></span><span class="line" id="L-33">| Name | Count |</span><span class="line" id="L-34">| ---- | ----: |</span><span class="line" id="L-35">| b    | 10    |</span><span class="line" id="L-36">| a    | 2     |</span><span class="line" id="L-37"></span><span class="line" id="L-38"><span class="gu">## Diagrams</span></span><span class="line" id="L-39"></span><span class="line" id="L-40"><span class="sb">```mermaid</span></span><span class="line" id="L-41"><span class="s">graph TD; A--&gt;B</span></span><span class="line" id="L-42"><span class="sb">```</span></span><span class="line" id="L-43"></span><span class="line" id="L-44"><span class="sb">```plantuml</span></span><span class="line" id="L-45"><span class="s">@startuml</span></span><span class="line" id="L-46"><span class="s">Alice -&gt; Bob: hi</span></span><span class="line" id="L-47"><span class="s">@enduml</span></span><span class="line" id="L-48"><span class="sb">```</span></span><span class="line" id="L-49"></span><span class="line" id="L-50"><span class="gu">## Code</span></span><span class="line" id="L-51"></span><span class="line" id="L-52"><span class="sb">```python</span></span><span class="line" id="L-53"><span class="k">def</span><span class="w"> </span><span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span></span><span class="line" id="L-54">    <span class="k">return</span> <span class="sa">f</span><span class="s2">"hi </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span></span><span class="line" id="L-55"><span class="sb">```</span></span><span class="line" id="L-56"></span><span class="line" id="L-57"><span class="sb">```unknownlang</span></span><span class="line" id="L-58"><span class="s">plain text</span></span><span class="line" id="L-59"><span class="sb">```</span></span><span class="line" id="L-60"></span><span class="line" id="L-61"><span class="sb">```</span></span><span class="line" id="L-62"><span class="sb">no language</span></span><span class="line" id="L-63"><span class="sb">```</span></span><span class="line" id="L-64"></span><span class="line" id="L-65"><span class="gu">## Math</span></span><span class="line" id="L-66"></span><span class="line" id="L-67">Inline $e^{i\pi} + 1 = 0$, but $5 and $200k and SQL <span class="sb">`$1`</span> stay text.</span><span class="line" id="L-68"></span><span class="line" id="L-69">$$</span><span class="line" id="L-70">\int_0^1 x\,dx = \tfrac12</span><span class="line" id="L-71">$$ (eq1)</span><span class="line" id="L-72"></span><span class="line" id="L-73"><span class="gu">#### Deep heading</span></span><span class="line" id="L-74"></span><span class="line" id="L-75">&lt;div&gt;raw html&lt;/div&gt;</span><span class="line" id="L-76"></span><span class="line" id="L-77">[<span class="nl">^1</span>]: <span class="na">The footnote.</span></span></code></pre></div>
+  </main>
+  <script type="module" src="/_static/client.js"></script>
+</body>
+</html>

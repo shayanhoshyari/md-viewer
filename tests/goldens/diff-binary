@@ -1,0 +1,54 @@
+status: 200
+content-type: text/html; charset=utf-8
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>logo.bin</title>
+  <link rel="preconnect" href="https://esm.sh" crossorigin>
+  <link rel="stylesheet" href="/_static/pygments.css">
+  <link rel="stylesheet" href="/_static/style.css">
+  <script>
+    try { if (localStorage.getItem("navHidden")) document.documentElement.classList.add("nav-hidden"); } catch (e) {}
+    try { if (localStorage.getItem("scmHidden")) document.documentElement.classList.add("scm-hidden"); } catch (e) {}
+    window.__shikiVersion = "3.23.0";
+    window.__shikiTheme = "light-plus";
+  </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+  <script type="module">
+    import katex from "https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.mjs";
+    for (const el of document.querySelectorAll(".markdown-body .math")) {
+      katex.render(el.textContent, el, { displayMode: el.classList.contains("block"), throwOnError: false });
+    }
+  </script>
+</head>
+<body class="has-scm">
+  <aside class="sidebar">
+    <details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details>
+    <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
+    <ul class="tree-root"><li class="dir"><details><summary>sub/</summary><ul>
+<li><a href="/sub/pair-b.md">pair-b.md</a></li>
+</ul></details></li>
+<li><a href="/blocks.md">blocks.md</a></li>
+<li><a href="/front.md">front.md</a></li>
+<li><a href="/history.md">history.md</a></li>
+<li><a href="/notes.md">notes.md</a></li>
+<li><a href="/pair-a.md">pair-a.md</a></li>
+<li><a href="/staged.md">staged.md</a></li></ul>
+  </aside>
+  <main class="content">
+    <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
+    <div class="path">logo.bin<div class="views"><a href="/logo.bin?view=diff" class="active">Diff</a></div></div>
+    <p class="diff-label">Binary file: no text diff.</p>
+  </main>
+  <button class="scm-toggle" title="Toggle source control">&#8644;</button>
+  <aside class="scm"><section class="scm-files"><h2>Changes <span class="scm-detail">Edit both pair files</span></h2><ul><li class="scm-folder"><details open><summary>sub</summary><ul><li><a class="scm-file " href="/sub/NOTES?view=diff&amp;commit=<c5>" title="sub/NOTES (modified)"><span class="scm-name">NOTES</span><span class="scm-status scm-M">M</span></a></li><li><a class="scm-file " href="/sub/pair-b.md?view=diff&amp;commit=<c5>" title="sub/pair-b.md (modified)"><span class="scm-name">pair-b.md</span><span class="scm-status scm-M">M</span></a></li></ul></details></li><li><a class="scm-file current" href="/logo.bin?view=diff&amp;commit=<c5>" title="logo.bin (modified)"><span class="scm-name">logo.bin</span><span class="scm-status scm-M">M</span></a></li><li><a class="scm-file " href="/pair-a.md?view=diff&amp;commit=<c5>" title="pair-a.md (modified)"><span class="scm-name">pair-a.md</span><span class="scm-status scm-M">M</span></a></li></ul></section><section class="scm-choices"><h2>Source control</h2><ul><li><a class="scm-choice" href="/logo.bin?view=diff&amp;base=uncommitted"><span class="scm-subject">Uncommitted</span><span class="scm-detail">4 files</span></a></li><li><a class="scm-choice" href="/logo.bin?view=diff&amp;base=staged"><span class="scm-subject">Staged</span><span class="scm-detail">1 file</span></a></li><li><a class="scm-choice" href="/logo.bin?view=diff&amp;base=unstaged"><span class="scm-subject">Unstaged</span><span class="scm-detail">4 files</span></a></li></ul><h2>Commits</h2><ul><li><a class="scm-choice current" href="/logo.bin?view=diff&amp;commit=<c5>"><span class="scm-subject">Edit both pair files</span><span class="scm-detail"><c5> · 2026-02-05</span></a></li><li><a class="scm-choice" href="/logo.bin?view=diff&amp;commit=<c4>"><span class="scm-subject">History v4</span><span class="scm-detail"><c4> · 2026-02-04</span></a></li><li><a class="scm-choice" href="/logo.bin?view=diff&amp;commit=<c3>"><span class="scm-subject">Rename to history.md, v3</span><span class="scm-detail"><c3> · 2026-02-03</span></a></li><li><a class="scm-choice" href="/logo.bin?view=diff&amp;commit=<c2>"><span class="scm-subject">History v2</span><span class="scm-detail"><c2> · 2026-02-02</span></a></li><li><a class="scm-choice" href="/logo.bin?view=diff&amp;commit=<c1>"><span class="scm-subject">Add history files</span><span class="scm-detail"><c1> · 2026-02-01</span></a></li></ul></section></aside>
+  <script type="module" src="/_static/client.js"></script>
+</body>
+</html>

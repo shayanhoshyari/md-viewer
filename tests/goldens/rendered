@@ -1,0 +1,137 @@
+status: 200
+content-type: text/html; charset=utf-8
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>doc.md</title>
+  <link rel="preconnect" href="https://esm.sh" crossorigin>
+  <link rel="stylesheet" href="/_static/pygments.css">
+  <link rel="stylesheet" href="/_static/style.css">
+  <script>
+    try { if (localStorage.getItem("navHidden")) document.documentElement.classList.add("nav-hidden"); } catch (e) {}
+    window.__shikiVersion = "3.23.0";
+    window.__shikiTheme = "light-plus";
+  </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+  <script type="module">
+    import katex from "https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.mjs";
+    for (const el of document.querySelectorAll(".markdown-body .math")) {
+      katex.render(el.textContent, el, { displayMode: el.classList.contains("block"), throwOnError: false });
+    }
+  </script>
+</head>
+<body>
+  <aside class="sidebar">
+    <details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details>
+    <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
+    <ul class="tree-root"><li class="dir"><details><summary>docs/</summary><ul>
+<li><a href="/docs/README.md">README.md</a></li>
+</ul></details></li>
+<li class="dir"><details><summary>notes/</summary><ul>
+<li><a href="/notes/data.json">data.json</a></li>
+</ul></details></li>
+<li><a href="/clean.md">clean.md</a></li>
+<li><a href="/code.py">code.py</a></li>
+<li><a href="/dirty.md">dirty.md</a></li>
+<li><a href="/doc.md">doc.md</a></li>
+<li><a href="/escape.md">escape.md</a></li>
+<li><a href="/new.md">new.md</a></li>
+<li><a href="/nonum.md">nonum.md</a></li></ul>
+  </aside>
+  <main class="content">
+    <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
+    <div class="path">doc.md<div class="views"><a href="/doc.md" class="active">Rendered</a><a href="/doc.md?view=diff">Diff</a><a href="/doc.md?view=source">Source</a><a href="/doc.md?view=raw">Raw</a><a href="/doc.md?view=pdf">PDF</a></div></div>
+    <div class="markdown-body" data-notes-path="doc.md" data-notes-version="87af09e887b50f48bdf89af7b433efb3d90a7abafd7b81d750fb915de588d74d"><h1 id="every-feature" data-block="0">Every feature</h1>
+<nav class="toc"><details open><summary>Contents</summary><ul><li class="toc-d2"><a href="#setup">1. Setup</a></li><li class="toc-d3"><a href="#details">1.1. Details</a></li><li class="toc-d2"><a href="#callouts">2. Callouts</a></li><li class="toc-d2"><a href="#tables">3. Tables</a></li><li class="toc-d2"><a href="#diagrams">4. Diagrams</a></li><li class="toc-d2"><a href="#code">5. Code</a></li><li class="toc-d2"><a href="#math">6. Math</a></li></ul></details></nav>
+<p data-block="1">Intro paragraph with a footnote<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> and a link to https://example.com.</p>
+<h2 id="setup" data-block="2">1. Setup</h2>
+<p data-block="3">Some <code>inline code</code> and <s>struck</s> text.</p>
+<h3 id="details" data-block="4">1.1. Details</h3>
+<ul class="contains-task-list">
+<li class="task-list-item" data-block="5"><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> done</li>
+<li class="task-list-item" data-block="6"><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> open</li>
+</ul>
+<h2 id="callouts" data-block="7">2. Callouts</h2>
+<div class="markdown-alert markdown-alert-note" data-block="8">
+<p class="markdown-alert-title">Note</p>
+<p>A note with <strong>bold</strong> text.</p>
+</div>
+<blockquote data-block="9">
+<p>[!WARNING] Careful
+Text on the next line.</p>
+</blockquote>
+<div class="markdown-alert markdown-alert-tip" data-block="10">
+<p class="markdown-alert-title">Tip</p>
+</div>
+<blockquote data-block="11">
+<p>A plain quote.</p>
+</blockquote>
+<h2 id="tables" data-block="12">3. Tables</h2>
+<table data-block="13">
+<thead>
+<tr>
+<th>Name</th>
+<th style="text-align:right">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>b</td>
+<td style="text-align:right">10</td>
+</tr>
+<tr>
+<td>a</td>
+<td style="text-align:right">2</td>
+</tr>
+</tbody>
+</table>
+<h2 id="diagrams" data-block="14">4. Diagrams</h2>
+<div class="md-block" data-block="15">
+<div class="mermaid">graph TD; A--&gt;B
+</div>
+</div>
+<div class="md-block" data-block="16">
+<figure class="plantuml"><a href="https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuNBCoKnELT2rKt3AJx9IoCZaSaZDIm59000" target="_blank" rel="noopener noreferrer"><img src="https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuNBCoKnELT2rKt3AJx9IoCZaSaZDIm59000" alt="PlantUML diagram (source below)" loading="lazy" referrerpolicy="no-referrer"></a><details><summary>Diagram source · rendered by public PlantUML server</summary><pre><code>@startuml
+Alice -&gt; Bob: hi
+@enduml
+</code></pre></details></figure>
+</div>
+<h2 id="code" data-block="17">5. Code</h2>
+<div class="md-block" data-block="18">
+<div class="code-block" data-lang="python"><pre><code><span class="line" id="L-1"><span class="k">def</span><span class="w"> </span><span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span></span><span class="line" id="L-2">    <span class="k">return</span> <span class="sa">f</span><span class="s2">"hi </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span></span></code></pre></div>
+</div>
+<div class="md-block" data-block="19">
+<div class="code-block"><pre><code><span class="line" id="L-1">plain text</span></code></pre></div>
+</div>
+<div class="md-block" data-block="20">
+<div class="code-block"><pre><code><span class="line" id="L-1">no language</span></code></pre></div>
+</div>
+<h2 id="math" data-block="21">6. Math</h2>
+<p data-block="22">Inline <span class="math inline">e^{i\pi} + 1 = 0</span>, but $5 and $200k and SQL <code>$1</code> stay text.</p>
+<div class="md-block" data-block="23">
+<div id="eq1" class="math block">
+<a href="#eq1" class="mathlabel" title="Permalink to this equation">¶</a>
+\int_0^1 x\,dx = \tfrac12
+</div>
+</div>
+<h4 id="deep-heading" data-block="24">6.0.1. Deep heading</h4>
+<div>raw html</div>
+<hr class="footnotes-sep" />
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>The footnote. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+</div>
+  </main>
+  <script type="module" src="/_static/client.js"></script>
+</body>
+</html>

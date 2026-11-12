@@ -1,0 +1,157 @@
+status: 200
+content-type: text/html; charset=utf-8
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>blocks.md</title>
+  <link rel="preconnect" href="https://esm.sh" crossorigin>
+  <link rel="stylesheet" href="/_static/pygments.css">
+  <link rel="stylesheet" href="/_static/style.css">
+  <script>
+    try { if (localStorage.getItem("navHidden")) document.documentElement.classList.add("nav-hidden"); } catch (e) {}
+    try { if (localStorage.getItem("scmHidden")) document.documentElement.classList.add("scm-hidden"); } catch (e) {}
+    window.__shikiVersion = "3.23.0";
+    window.__shikiTheme = "light-plus";
+  </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+  <script type="module">
+    import katex from "https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.mjs";
+    for (const el of document.querySelectorAll(".markdown-body .math")) {
+      katex.render(el.textContent, el, { displayMode: el.classList.contains("block"), throwOnError: false });
+    }
+  </script>
+</head>
+<body class="has-scm">
+  <aside class="sidebar">
+    <details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details>
+    <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
+    <ul class="tree-root"><li class="dir"><details><summary>sub/</summary><ul>
+<li><a href="/sub/pair-b.md">pair-b.md</a></li>
+</ul></details></li>
+<li><a href="/blocks.md">blocks.md</a></li>
+<li><a href="/front.md">front.md</a></li>
+<li><a href="/history.md">history.md</a></li>
+<li><a href="/notes.md">notes.md</a></li>
+<li><a href="/pair-a.md">pair-a.md</a></li>
+<li><a href="/staged.md">staged.md</a></li></ul>
+  </aside>
+  <main class="content">
+    <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
+    <div class="path">blocks.md<div class="views"><a href="/blocks.md">Rendered</a><a href="/blocks.md?view=diff" class="active">Diff</a><a href="/blocks.md?view=source">Source</a><a href="/blocks.md?view=raw">Raw</a><a href="/blocks.md?view=pdf">PDF</a></div></div>
+    <div class="diff-controls"><span class="toggle"><a href="?view=diff&amp;mode=rendered">Unified</a><a href="?view=diff&amp;layout=split&amp;mode=rendered" class="active">Split</a></span><span class="toggle"><a href="?view=diff&amp;layout=split">Text</a><a href="?view=diff&amp;layout=split&amp;mode=rendered" class="active">Rendered</a></span></div><p class="diff-label">Uncommitted changes against HEAD</p><div class="bdiff split"><details class="bfold" open><summary>⋯ 2 unchanged blocks</summary><div class="brow"><div class="bcell same markdown-body"><h1>Blocks</h1>
+</div><div class="bcell same markdown-body"><h1 id="blocks">Blocks</h1>
+</div></div><div class="brow"><div class="bcell same markdown-body"><p>Intro paragraph with a <a href="https://example.com">reference link</a> and a footnote.<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup></p>
+</div><div class="bcell same markdown-body"><p>Intro paragraph with a <a href="https://example.com">reference link</a> and a footnote.<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup></p>
+</div></div></details><div class="brow"><div class="bcell same markdown-body"><h2>1. First</h2>
+</div><div class="bcell same markdown-body"><h2 id="first">1. First</h2>
+</div></div><div class="brow"><div class="bcell same markdown-body"><ul>
+<li>Apple</li>
+</ul>
+</div><div class="bcell same markdown-body"><ul>
+<li>Apple</li>
+</ul>
+</div></div><div class="brow"><div class="bcell del markdown-body"><ul>
+<li><mark>Banana</mark></li>
+</ul>
+</div><div class="bcell add markdown-body"><ul>
+<li><mark>Blueberry</mark></li>
+</ul>
+</div></div><div class="brow"><div class="bcell same markdown-body"><ul>
+<li>Cherry</li>
+</ul>
+</div><div class="bcell same markdown-body"><ul>
+<li>Cherry</li>
+</ul>
+</div></div><div class="brow"><div class="bcell same markdown-body"><ol>
+<li>One</li>
+</ol>
+</div><div class="bcell same markdown-body"><ol>
+<li>One</li>
+</ol>
+</div></div><div class="brow"><div class="bcell same markdown-body"><ol start="2">
+<li>Two</li>
+</ol>
+</div><div class="bcell same markdown-body"><ol start="2">
+<li>Two</li>
+</ol>
+</div></div><div class="brow"><div class="bcell same markdown-body"><ol start="3">
+<li>Three</li>
+</ol>
+</div><div class="bcell same markdown-body"><ol start="3">
+<li>Three</li>
+</ol>
+</div></div><div class="brow"><div class="bcell empty"></div><div class="bcell add markdown-body"><h2 id="inserted">2. Inserted</h2>
+</div></div><div class="brow"><div class="bcell empty"></div><div class="bcell add markdown-body"><p>A new section in the middle.</p>
+</div></div><div class="brow"><div class="bcell same markdown-body"><h2>2. Second</h2>
+</div><div class="bcell same markdown-body"><h2 id="second">3. Second</h2>
+</div></div><div class="brow"><div class="bcell del markdown-body"><p>This paragraph will be deleted.</p>
+</div><div class="bcell empty"></div></div><div class="brow"><div class="bcell del markdown-body"><table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a</td>
+<td>1</td>
+</tr>
+<tr>
+<td>b</td>
+<td><mark>2</mark></td>
+</tr>
+</tbody>
+</table>
+</div><div class="bcell add markdown-body"><table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a</td>
+<td>1</td>
+</tr>
+<tr>
+<td>b</td>
+<td><mark>3</mark></td>
+</tr>
+</tbody>
+</table>
+</div></div><div class="brow"><div class="bcell same markdown-body"><div class="code-block" data-lang="python"><pre><code><span class="line" id="L-1"><span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">():</span></span><span class="line" id="L-2"></span><span class="line" id="L-3">    <span class="k">return</span> <span class="mi">1</span></span></code></pre></div>
+</div><div class="bcell same markdown-body"><div class="code-block" data-lang="python"><pre><code><span class="line" id="L-1"><span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">():</span></span><span class="line" id="L-2"></span><span class="line" id="L-3">    <span class="k">return</span> <span class="mi">1</span></span></code></pre></div>
+</div></div><div class="brow"><div class="bcell same markdown-body"><h2>3. Third</h2>
+</div><div class="bcell same markdown-body"><h2 id="third">4. Third</h2>
+</div></div><details class="bfold" open><summary>⋯ 2 unchanged blocks</summary><div class="brow"><div class="bcell same markdown-body"><p>Closing paragraph.</p>
+</div><div class="bcell same markdown-body"><p>Closing paragraph.</p>
+</div></div><div class="brow"><div class="bcell same markdown-body"><hr class="footnotes-sep" />
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>The footnote. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+</div><div class="bcell same markdown-body"><hr class="footnotes-sep" />
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>The footnote. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+</div></div></details></div>
+  </main>
+  <button class="scm-toggle" title="Toggle source control">&#8644;</button>
+  <aside class="scm"><section class="scm-files"><h2>Changes <span class="scm-detail">Uncommitted</span></h2><ul><li><a class="scm-file current" href="/blocks.md?view=diff&amp;base=uncommitted&amp;layout=split&amp;mode=rendered" title="blocks.md (modified)"><span class="scm-name">blocks.md</span><span class="scm-status scm-M">M</span></a></li><li><a class="scm-file " href="/front.md?view=diff&amp;base=uncommitted&amp;layout=split&amp;mode=rendered" title="front.md (modified)"><span class="scm-name">front.md</span><span class="scm-status scm-M">M</span></a></li><li><a class="scm-file " href="/notes.md?view=diff&amp;base=uncommitted&amp;layout=split&amp;mode=rendered" title="notes.md (modified)"><span class="scm-name">notes.md</span><span class="scm-status scm-M">M</span></a></li><li><a class="scm-file " href="/staged.md?view=diff&amp;base=uncommitted&amp;layout=split&amp;mode=rendered" title="staged.md (modified)"><span class="scm-name">staged.md</span><span class="scm-status scm-M">M</span></a></li></ul></section><section class="scm-choices"><h2>Source control</h2><ul><li><a class="scm-choice current" href="/blocks.md?view=diff&amp;base=uncommitted&amp;layout=split&amp;mode=rendered"><span class="scm-subject">Uncommitted</span><span class="scm-detail">4 files</span></a></li><li><a class="scm-choice" href="/blocks.md?view=diff&amp;base=staged&amp;layout=split&amp;mode=rendered"><span class="scm-subject">Staged</span><span class="scm-detail">1 file</span></a></li><li><a class="scm-choice" href="/blocks.md?view=diff&amp;base=unstaged&amp;layout=split&amp;mode=rendered"><span class="scm-subject">Unstaged</span><span class="scm-detail">4 files</span></a></li></ul><h2>Commits</h2><ul><li><a class="scm-choice" href="/blocks.md?view=diff&amp;layout=split&amp;mode=rendered&amp;commit=<c5>"><span class="scm-subject">Edit both pair files</span><span class="scm-detail"><c5> · 2026-02-05</span></a></li><li><a class="scm-choice" href="/blocks.md?view=diff&amp;layout=split&amp;mode=rendered&amp;commit=<c4>"><span class="scm-subject">History v4</span><span class="scm-detail"><c4> · 2026-02-04</span></a></li><li><a class="scm-choice" href="/blocks.md?view=diff&amp;layout=split&amp;mode=rendered&amp;commit=<c3>"><span class="scm-subject">Rename to history.md, v3</span><span class="scm-detail"><c3> · 2026-02-03</span></a></li><li><a class="scm-choice" href="/blocks.md?view=diff&amp;layout=split&amp;mode=rendered&amp;commit=<c2>"><span class="scm-subject">History v2</span><span class="scm-detail"><c2> · 2026-02-02</span></a></li><li><a class="scm-choice" href="/blocks.md?view=diff&amp;layout=split&amp;mode=rendered&amp;commit=<c1>"><span class="scm-subject">Add history files</span><span class="scm-detail"><c1> · 2026-02-01</span></a></li></ul></section></aside>
+  <script type="module" src="/_static/client.js"></script>
+</body>
+</html>

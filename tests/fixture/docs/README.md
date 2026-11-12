@@ -1,0 +1,3 @@
+# Docs readme
+
+Redirect target.
