@@ -57,6 +57,27 @@ def test_section_numbers_enabled(source: str, enabled: bool) -> None:
     assert section_numbers_enabled(source) is enabled
 
 
+TABLE = "| Task | Due Date |\n| - | - |\n| a | 2 |\n"
+
+
+@pytest.mark.parametrize(
+    ("comment", "marked"),
+    [
+        ("<!-- default-sort: Due Date desc -->\n", '<th data-default-sort="desc">Due Date</th>'),
+        ("<!-- default-sort: due date -->\n\n", '<th data-default-sort="asc">Due Date</th>'),
+        ("<!-- default-sort: Nope -->\n", None),
+        ("<!-- default-sort: Task sideways -->\n", None),
+        ("<!-- default-sort: Task -->\n\ntext\n\n", None),
+    ],
+)
+def test_default_sort(comment: str, marked: str | None) -> None:
+    html = MD.render(comment + TABLE)
+    if marked is None:
+        assert "data-default-sort" not in html
+    else:
+        assert marked in html
+
+
 def test_resolve_safe(tmp_path: Path) -> None:
     root = tmp_path.resolve()
     (root / "a").mkdir()

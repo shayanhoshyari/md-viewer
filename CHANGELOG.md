@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.0 - 2026-11-13
+
+- A table can open already sorted: put `<!-- default-sort: <column> [asc|desc] -->` on the line before it. Clicking headers still re-sorts.
+
 ## 0.13.0 - 2026-11-13
 
 - Sorting a table puts rows whose cell in that column is empty at the bottom, ascending or descending, as spreadsheets do.

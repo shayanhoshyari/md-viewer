@@ -102,6 +102,30 @@ def note_boxes(state: StateCore) -> None:
         index += 1
 
 
+DEFAULT_SORT_RE = re.compile(r"^<!-- default-sort: (.+?)(?: (asc|desc))? -->$")
+
+
+def default_sort(state: StateCore) -> None:
+    """A `<!-- default-sort: <column> [asc|desc] -->` line before a table marks that header cell.
+
+    The cell gets `data-default-sort` set to the direction; the page sorts by it on load.
+    """
+    tokens = state.tokens
+    for index, token in enumerate(tokens[:-1]):
+        if token.type != "html_block" or tokens[index + 1].type != "table_open":
+            continue
+        match = DEFAULT_SORT_RE.match(token.content.strip())
+        if not match:
+            continue
+        column, direction = match.group(1).strip().casefold(), match.group(2) or "asc"
+        for cell, inline in zip(tokens[index + 1 :], tokens[index + 2 :]):
+            if cell.type == "thead_close":
+                break
+            if cell.type == "th_open" and inline.content.strip().casefold() == column:
+                cell.attrSet("data-default-sort", direction)
+                break
+
+
 def build_markdown() -> MarkdownIt:
     md = (
         MarkdownIt("commonmark", {"html": True, "linkify": True})
@@ -113,6 +137,7 @@ def build_markdown() -> MarkdownIt:
     )
     md.core.ruler.after("block", "github_alerts", github_alerts)
     md.core.ruler.after("github_alerts", "note_boxes", note_boxes)
+    md.core.ruler.after("note_boxes", "default_sort", default_sort)
     md.add_render_rule("fence", render_fence)
     return md
 

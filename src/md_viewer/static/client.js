@@ -93,6 +93,7 @@ window.addEventListener('hashchange', function () {
 
 // Click a table header to sort by that column: ascending, descending, then the
 // file's original order again. Empty cells stay last. A row's note row moves with it.
+// A header with data-default-sort (from a default-sort comment) is sorted that way on load.
 document.querySelectorAll('.content table').forEach(function (table) {
   var body = table.tBodies[0];
   if (!body) return;
@@ -103,27 +104,31 @@ document.querySelectorAll('.content table').forEach(function (table) {
     if (r.classList.contains('md-note-row') && prev) noteRows.set(prev, r);
   });
   var headers = table.querySelectorAll('thead th');
+  // Sort by column `col` in direction `dir` ('asc', 'desc', or '' for file order).
+  function sortBy(th, col, dir) {
+    headers.forEach(function (h) { delete h.dataset.sort; });
+    var rows = original.slice();
+    if (dir) {
+      th.dataset.sort = dir;
+      rows.sort(function (a, b) {
+        var x = a.cells[col] ? a.cells[col].textContent.trim() : '';
+        var y = b.cells[col] ? b.cells[col].textContent.trim() : '';
+        // Empty cells go last in both directions, as in spreadsheets.
+        if (!x || !y) return (x ? 0 : 1) - (y ? 0 : 1);
+        var c = x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' });
+        return dir === 'asc' ? c : -c;
+      });
+    }
+    rows.forEach(function (r) {
+      body.appendChild(r);
+      if (noteRows.has(r)) body.appendChild(noteRows.get(r));
+    });
+  }
   headers.forEach(function (th, col) {
     th.addEventListener('click', function () {
-      var next = { '': 'asc', asc: 'desc', desc: '' }[th.dataset.sort || ''];
-      headers.forEach(function (h) { delete h.dataset.sort; });
-      var rows = original.slice();
-      if (next) {
-        th.dataset.sort = next;
-        rows.sort(function (a, b) {
-          var x = a.cells[col] ? a.cells[col].textContent.trim() : '';
-          var y = b.cells[col] ? b.cells[col].textContent.trim() : '';
-          // Empty cells go last in both directions, as in spreadsheets.
-          if (!x || !y) return (x ? 0 : 1) - (y ? 0 : 1);
-          var c = x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' });
-          return next === 'asc' ? c : -c;
-        });
-      }
-      rows.forEach(function (r) {
-        body.appendChild(r);
-        if (noteRows.has(r)) body.appendChild(noteRows.get(r));
-      });
+      sortBy(th, col, { '': 'asc', asc: 'desc', desc: '' }[th.dataset.sort || '']);
     });
+    if (th.dataset.defaultSort) sortBy(th, col, th.dataset.defaultSort);
   });
 });
 

@@ -24,7 +24,7 @@ ${CLAUDE_SKILL_DIR}/bin/md-viewer serve <path>
 
 ## What it shows
 
-H2–H6 section numbers and a table of contents (`<!-- section-numbers: false -->` near the top turns numbering off), GitHub callouts, sortable tables, Mermaid and PlantUML fences, LaTeX math (`$x$`, `$$…$$`; `$5` stays text), and `Rendered | Diff | Source | Raw | PDF` tabs. [DESIGN.md](DESIGN.md) is the full spec.
+H2–H6 section numbers and a table of contents (`<!-- section-numbers: false -->` near the top turns numbering off), GitHub callouts, sortable tables (`<!-- default-sort: Due asc -->` above one sets how it opens), Mermaid and PlantUML fences, LaTeX math (`$x$`, `$$…$$`; `$5` stays text), and `Rendered | Diff | Source | Raw | PDF` tabs. [DESIGN.md](DESIGN.md) is the full spec.
 
 The Diff tab has a source control panel on the right (changed files, then Uncommitted, Staged, Unstaged and recent commits) and takes its choices from the URL, so hand over a link to the exact view: `commit=<sha>` for what one commit changed, `base` (`auto`, `uncommitted`, `staged`, `unstaged` or a commit SHA, with `to` for a second commit), `layout=split` for side by side, and `mode=rendered` for a block-level diff of rendered markdown, e.g. `…/plan.md?view=diff&commit=a1b2c3d&mode=rendered`.
 
