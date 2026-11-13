@@ -6,6 +6,7 @@ import base64
 import html
 import re
 import zlib
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +22,7 @@ from pygments.lexers.special import TextLexer
 from pygments.util import ClassNotFound
 
 from md_viewer.highlight import code_block
-from md_viewer.notes import Target, parse_note
+from md_viewer.notes import Note, Target, parse_note, row_without_note
 
 PLANTUML_SVG_URL = "https://www.plantuml.com/plantuml/svg/"
 
@@ -64,24 +65,41 @@ def github_alerts(state: StateCore) -> None:
 LINE_OFFSET = "md_viewer_line_offset"  # env key: file lines dropped before the parsed source (front matter)
 
 
-def note_html(quote: str, text: str, line: int) -> str:
+def note_html(quote: str, text: str) -> str:
+    """A note box; the page's block numbering adds `data-note-block`."""
     quote_html = f'<div class="md-note-quote">{html.escape(quote)}</div>' if quote else ""
-    return (
-        f'<aside class="md-note" data-note-line="{line}">{quote_html}'
-        f'<div class="md-note-text">{html.escape(text)}</div></aside>\n'
-    )
+    return f'<aside class="md-note">{quote_html}<div class="md-note-text">{html.escape(text)}</div></aside>\n'
 
 
 def note_boxes(state: StateCore) -> None:
-    """Show each note comment as a note box, carrying its 1-based line in the file."""
-    offset = state.env.get(LINE_OFFSET, 0)
-    for token in state.tokens:
-        if token.type != "html_block" or token.map is None:
-            continue
-        note = parse_note(token.content.rstrip("\r\n"))
-        if note is not None and "\n" not in token.content.rstrip("\r\n"):
-            token.content = note_html(note.quote, note.text, offset + token.map[0] + 1)
-            token.meta["note"] = True
+    """Show each note as a note box: a note line in place, a row's note in a full-width row below it.
+
+    Note tokens get `meta["note"]`, and their `map` is the note's line (for a row note, the row's).
+    """
+    lines = state.src.split("\n")
+    tokens = state.tokens
+    columns = 0
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token.type == "html_block" and token.map is not None:
+            note = parse_note(token.content.rstrip("\r\n"))
+            if note is not None and not note.on_row and "\n" not in token.content.rstrip("\r\n"):
+                token.content = note_html(note.quote, note.text)
+                token.meta["note"] = True
+        elif token.type == "thead_open":
+            columns = sum(1 for t in tokens[index : group_end(tokens, index)] if t.type == "th_open")
+        elif token.type == "tr_open" and token.map is not None and tokens[index - 1].type != "thead_open":
+            note = parse_note(lines[token.map[0]].rstrip("\r"))
+            if note is not None and note.on_row:
+                close = group_end(tokens, index)
+                box = Token("html_block", "", 0, map=list(token.map), level=token.level)
+                box.content = (
+                    f'<tr class="md-note-row"><td colspan="{columns}">{note_html(note.quote, note.text)}</td></tr>\n'
+                )
+                box.meta["note"] = True
+                tokens.insert(close + 1, box)
+        index += 1
 
 
 def build_markdown() -> MarkdownIt:
@@ -191,7 +209,7 @@ def render_markdown(path: Path, *, notes: bool = False) -> str:
     """The page body; with `notes`, every block that can take a note carries `data-block`."""
     tokens, env, source = parse_markdown(path.read_text(encoding="utf-8", errors="replace"))
     if notes:
-        mark_note_targets(tokens, note_targets(tokens, source, env[LINE_OFFSET]))
+        mark_note_targets(tokens, note_targets(tokens, source, env[LINE_OFFSET]), env[LINE_OFFSET])
     body = MD.renderer.render(tokens, MD.options, {})
     outline = outline_html(tokens)
     if not outline:
@@ -226,12 +244,17 @@ def item_indent(line: str) -> str:
     return " " * (len(lead) + len(marker) + gap)
 
 
-def note_targets(tokens: list[Token], source: str, offset: int) -> list[tuple[int, int, Target]]:
-    """(opening token, closing token, where a new note goes) for each block that can take notes.
+def note_line(token: Token, offset: int) -> int | None:
+    """The 0-based file line of a note token, or None for any other token."""
+    return offset + token.map[0] if token.meta.get("note") and token.map is not None else None
 
-    The blocks are the rendered diff's: top-level blocks, and the items of top-level lists. A raw
-    HTML block takes none, since a line right after it joins it. Notes already after a block are
-    skipped, so a new note goes below them.
+
+def note_targets(tokens: list[Token], source: str, offset: int) -> list[tuple[int, int, Target]]:
+    """(opening token, closing token, where its note goes) for each block that can take a note.
+
+    The blocks are the rendered diff's (top-level blocks, and the items of top-level lists) plus
+    each table body row. A raw HTML block takes none, since a line right after it joins it. A new
+    note line goes below the notes already after a block.
     """
     lines = source.split("\n")
 
@@ -249,9 +272,11 @@ def note_targets(tokens: list[Token], source: str, offset: int) -> list[tuple[in
         if opening.map is None:
             previous = None
         elif opening.type == "html_block":
-            if previous is not None and opening.meta.get("note"):
+            line = note_line(opening, offset)
+            if previous is not None and line is not None:
                 first, last, target = targets[previous]
-                targets[previous] = (first, last, Target(offset + opening.map[1], target.indent))
+                note = line if target.note is None else target.note
+                targets[previous] = (first, last, Target(offset + opening.map[1], target.indent, note=note))
             else:
                 previous = None
         elif opening.type in {"bullet_list_open", "ordered_list_open"}:
@@ -259,29 +284,133 @@ def note_targets(tokens: list[Token], source: str, offset: int) -> list[tuple[in
             while item < end:
                 item_end = group_end(tokens, item)
                 start, stop = tokens[item].map or (0, 0)
+                level = tokens[item].level + 1
+                inside = (note_line(t, offset) for t in tokens[item:item_end] if t.level == level)
+                note = next((line for line in inside if line is not None), None)
                 indent = item_indent(lines[start])
-                targets.append((item, item_end, Target(offset + last_line(start, stop), indent)))
+                targets.append((item, item_end, Target(offset + last_line(start, stop), indent, note=note)))
                 item = item_end + 1
             previous = None
         else:
             start, stop = opening.map
             targets.append((index, end, Target(offset + last_line(start, stop), "")))
             previous = len(targets) - 1
+            if opening.type == "table_open":
+                targets.extend(row_targets(tokens, index, end, offset))
         index = end + 1
     return targets
 
 
-ATTR_OPENERS = {"paragraph_open", "heading_open", "blockquote_open", "alert_open", "table_open", "list_item_open", "hr"}
+def row_targets(tokens: list[Token], start: int, end: int, offset: int) -> list[tuple[int, int, Target]]:
+    """One target per body row of the table between tokens `start` and `end`."""
+    rows: list[tuple[int, int, Target]] = []
+    in_body = False
+    for index in range(start, end):
+        token = tokens[index]
+        in_body = in_body or token.type == "tbody_open"
+        if not in_body or token.type != "tr_open" or token.map is None:
+            continue
+        close = group_end(tokens, index)
+        line = offset + token.map[0]
+        has_note = close + 1 < len(tokens) and note_line(tokens[close + 1], offset) == line
+        rows.append((index, close, Target(line, "", row=True, note=line if has_note else None)))
+    return rows
 
 
-def mark_note_targets(tokens: list[Token], targets: list[tuple[int, int, Target]]) -> None:
-    """Number the blocks with `data-block`; blocks whose renderer drops attributes get a wrapper."""
-    for number, (first, last, _) in reversed(list(enumerate(targets))):
+BLOCK_KINDS = {
+    "alert_open": "callout",
+    "blockquote_open": "quote",
+    "bullet_list_open": "list",
+    "code_block": "code block",
+    "fence": "code block",
+    "footnote_block_open": "footnotes",
+    "heading_open": "heading",
+    "hr": "rule",
+    "list_item_open": "list item",
+    "tr_open": "table row",
+    "math_block": "math",
+    "ordered_list_open": "list",
+    "paragraph_open": "paragraph",
+    "table_open": "table",
+}
+
+
+@dataclass(frozen=True)
+class FoundNote:
+    """A note in a file, with the block it's on. Lines are 1-based; `kind` is "" above every block."""
+
+    line: int
+    note: Note
+    kind: str
+    start: int
+    end: int
+    source: list[str]
+
+
+def find_notes(text: str) -> list[FoundNote]:
+    """Every note the rendered page shows, each with its row or the nearest block that starts above it."""
+    tokens, env, source = parse_markdown(text)
+    offset = env[LINE_OFFSET]
+    lines = [line.rstrip("\r") for line in text.split("\n")]
+    blocks = [
+        (offset + (tokens[first].map or (0, 0))[0] + 1, tokens[first])
+        for first, _, target in note_targets(tokens, source, offset)
+        if not target.row
+    ]
+    found: list[FoundNote] = []
+    for number in sorted(line + 1 for token in tokens if (line := note_line(token, offset)) is not None):
+        note = parse_note(lines[number - 1])
+        if note is None:
+            continue
+        above = [(start, token) for start, token in blocks if start < number]
+        if note.on_row:
+            header = lines[above[-1][0] - 1] if above else ""
+            found.append(FoundNote(number, note, "table row", number, number, [header, row_without_note(note.lead)]))
+            continue
+        if not above:
+            found.append(FoundNote(number, note, "", 0, 0, []))
+            continue
+        start, token = above[-1]
+        end = number - 1
+        while end > start and (not lines[end - 1].strip() or parse_note(lines[end - 1])):
+            end -= 1
+        body = [line for line in lines[start - 1 : end] if not parse_note(line)]
+        kind = BLOCK_KINDS.get(token.type, token.type.removesuffix("_open").replace("_", " "))
+        found.append(FoundNote(number, note, kind, start, end, body))
+    return found
+
+
+ATTR_OPENERS = {
+    "alert_open",
+    "blockquote_open",
+    "heading_open",
+    "hr",
+    "list_item_open",
+    "paragraph_open",
+    "table_open",
+    "tr_open",
+}
+
+
+def mark_note_targets(tokens: list[Token], targets: list[tuple[int, int, Target]], offset: int) -> None:
+    """Number the blocks with `data-block` (`data-noted` if they have a note) and their note boxes with
+    `data-note-block`. Blocks whose renderer drops attributes get a wrapper."""
+    note_tokens = {line: token for token in tokens if (line := note_line(token, offset)) is not None}
+    for number, (first, last, target) in reversed(list(enumerate(targets))):
+        attrs = {"data-block": str(number)}
+        box = note_tokens.get(target.note) if target.note is not None else None
+        if box is not None:
+            attrs["data-noted"] = ""
+            box.content = box.content.replace(
+                '<aside class="md-note"', f'<aside class="md-note" data-note-block="{number}"', 1
+            )
         opening = tokens[first]
         if opening.type in ATTR_OPENERS:
-            opening.attrSet("data-block", str(number))
+            for name, value in attrs.items():
+                opening.attrSet(name, value)
             continue
-        before = Token("html_block", "", 0, content=f'<div class="md-block" data-block="{number}">\n')
+        attr_html = "".join(f' {name}="{value}"' if value else f" {name}" for name, value in attrs.items())
+        before = Token("html_block", "", 0, content=f'<div class="md-block"{attr_html}>\n')
         after = Token("html_block", "", 0, content="</div>\n")
         tokens[last + 1 : last + 1] = [after]
         tokens[first:first] = [before]

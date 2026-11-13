@@ -30,7 +30,8 @@ def git(*args: str, cwd: Path, capture: bool = False) -> str:
 
 
 def main() -> int:
-    if git("status", "--porcelain", "--", ".", cwd=HERE, capture=True):
+    excluded = [f":(exclude){path}" for path in EXCLUDE]
+    if git("status", "--porcelain", "--", ".", *excluded, cwd=HERE, capture=True):
         print(f"Uncommitted changes in {HERE}; commit them first (publish uses HEAD).", file=sys.stderr)
         return 1
 

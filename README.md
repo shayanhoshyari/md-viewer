@@ -19,7 +19,7 @@ Needs [uv](https://docs.astral.sh/uv/getting-started/installation/). Clone it in
 git clone https://github.com/shayanhoshyari/md-viewer ~/.claude/skills/md-viewer
 ```
 
-Claude picks it up when you ask to view or preview markdown. To run it yourself, use `~/.claude/skills/md-viewer/bin/md-serve [PATH]`; the first run builds its venv. The PDF tab also needs `brew install pango`.
+Claude picks it up when you ask to view or preview markdown. To run it yourself, use `~/.claude/skills/md-viewer/bin/md-viewer serve [PATH]`; the first run builds its venv. The PDF tab also needs `brew install pango`.
 
 ## More
 

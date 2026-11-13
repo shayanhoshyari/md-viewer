@@ -1,4 +1,4 @@
-"""Notes: one-line HTML comments in a markdown file, and the only edits the viewer may make to it."""
+"""Notes: HTML comments ending a line of a markdown file, and the only edits the viewer may make to it."""
 
 from __future__ import annotations
 
@@ -6,23 +6,36 @@ import hashlib
 import re
 from dataclasses import dataclass
 
-# `<!-- note: text -->` or `<!-- note "quote": text -->`, alone on its line, indented or not.
-NOTE_RE = re.compile(r'^([ \t]*)<!-- note(?: "((?:[^"\\]|\\.)*)")?:[ \t]*(.*?)[ \t]*-->[ \t]*$')
+# `<!-- note: text -->` or `<!-- note "quote": text -->`, ending its line. Before it: whitespace only
+# (a note line, `lead` is its indent) or text ending in `|` (a note on a table row).
+NOTE_RE = re.compile(
+    r'^(?P<lead>[ \t]*|.*\|[ \t]*)<!-- note(?: "(?P<quote>(?:[^"\\]|\\.)*)")?:[ \t]*(?P<text>.*?)[ \t]*-->[ \t]*$'
+)
 
 
 @dataclass(frozen=True)
 class Note:
-    indent: str
+    lead: str
     quote: str
     text: str
+
+    @property
+    def on_row(self) -> bool:
+        return bool(self.lead.strip())
 
 
 @dataclass(frozen=True)
 class Target:
-    """Where a new note on one block goes: before file line `index` (0-based), with `indent`."""
+    """Where one block's note goes, as 0-based file lines.
+
+    A row's note ends the row's line `index`. Any other block's new note line is inserted before line
+    `index`, with `indent`. `note` is the line of the block's (first) note, if it has one.
+    """
 
     index: int
     indent: str
+    row: bool = False
+    note: int | None = None
 
 
 class NoteError(ValueError):
@@ -33,8 +46,8 @@ def parse_note(line: str) -> Note | None:
     match = NOTE_RE.match(line)
     if not match:
         return None
-    indent, quote, text = match.groups()
-    return Note(indent, re.sub(r"\\(.)", r"\1", quote or ""), text)
+    quote = re.sub(r"\\(.)", r"\1", match["quote"] or "")
+    return Note(match["lead"], quote, match["text"].replace("\\|", "|"))
 
 
 def clean(text: str) -> str:
@@ -45,11 +58,12 @@ def clean(text: str) -> str:
     return text
 
 
-def format_note(text: str, quote: str = "", indent: str = "") -> str:
-    text = clean(text)
-    quote = clean(quote).replace("\\", "\\\\").replace('"', '\\"')
+def format_note(text: str, quote: str = "", lead: str = "") -> str:
+    """The note as it ends a line: `lead` is a note line's indent, or a row's line plus one space."""
+    text = clean(text).replace("|", "\\|")
+    quote = clean(quote).replace("\\", "\\\\").replace('"', '\\"').replace("|", "\\|")
     head = f'note "{quote}"' if quote else "note"
-    return f"{indent}<!-- {head}: {text} -->"
+    return f"{lead}<!-- {head}: {text} -->"
 
 
 def version(data: bytes) -> str:
@@ -62,40 +76,58 @@ def split_lines(text: str) -> tuple[list[str], str]:
     return text.split(newline), newline
 
 
+def row_without_note(lead: str) -> str:
+    """A row's line once its note and the one space before it are gone."""
+    return lead[:-1] if lead.endswith(" ") else lead
+
+
 def without_notes(text: str) -> list[str]:
-    return [line for line in split_lines(text)[0] if not NOTE_RE.match(line)]
+    kept: list[str] = []
+    for line in split_lines(text)[0]:
+        note = parse_note(line)
+        if note is None:
+            kept.append(line)
+        elif note.on_row:
+            kept.append(row_without_note(note.lead))
+    return kept
 
 
-def add_note(text: str, target: Target, note_text: str, quote: str = "") -> str:
+def set_note(text: str, target: Target, note_text: str, quote: str = "") -> str:
+    """Write the block's note: replace the one it has, else add one."""
+    if not note_text.strip():
+        raise NoteError("a note needs text")
     lines, newline = split_lines(text)
-    lines.insert(target.index, format_note(note_text, quote, target.indent))
+    if target.note is not None:
+        old = note_at(lines, target.note)
+        lines[target.note] = format_note(note_text, quote, old.lead)
+    elif target.row:
+        lines[target.index] = format_note(note_text, quote, lines[target.index] + " ")
+    else:
+        lines.insert(target.index, format_note(note_text, quote, target.indent))
     return checked(text, newline.join(lines))
 
 
-def edit_note(text: str, line: int, note_text: str, quote: str | None = None) -> str:
-    """Replace the note on 1-based `line`; `quote=None` keeps its quote."""
+def delete_note(text: str, target: Target) -> str:
     lines, newline = split_lines(text)
-    old = note_at(lines, line)
-    lines[line - 1] = format_note(note_text, old.quote if quote is None else quote, old.indent)
+    if target.note is None:
+        raise NoteError("this block has no note")
+    old = note_at(lines, target.note)
+    if old.on_row:
+        lines[target.note] = row_without_note(old.lead)
+    else:
+        del lines[target.note]
     return checked(text, newline.join(lines))
 
 
-def delete_note(text: str, line: int) -> str:
-    lines, newline = split_lines(text)
-    note_at(lines, line)
-    del lines[line - 1]
-    return checked(text, newline.join(lines))
-
-
-def note_at(lines: list[str], line: int) -> Note:
-    note = parse_note(lines[line - 1]) if 1 <= line <= len(lines) else None
+def note_at(lines: list[str], index: int) -> Note:
+    note = parse_note(lines[index]) if 0 <= index < len(lines) else None
     if note is None:
-        raise NoteError(f"line {line} is not a note")
+        raise NoteError(f"line {index + 1} is not a note")
     return note
 
 
 def checked(old: str, new: str) -> str:
-    """The new text, after making sure only note lines differ from the old."""
+    """The new text, after making sure only notes differ from the old."""
     if without_notes(old) != without_notes(new):
-        raise NoteError("the edit would change more than note lines")
+        raise NoteError("the edit would change more than notes")
     return new

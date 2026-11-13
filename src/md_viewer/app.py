@@ -8,8 +8,9 @@ import json
 import mimetypes
 import os
 import tempfile
+from importlib.metadata import version as package_version
 from pathlib import Path
-from typing import Literal
+from typing import Any
 from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Request
@@ -20,7 +21,7 @@ from md_viewer.diff import render_diff
 from md_viewer.highlight import PYGMENTS_FORMATTER, render_source
 from md_viewer.layout import CLIENT_JS, STYLE, directory_listing, page, resolve_safe, short_path, view_links
 from md_viewer.markdown import LINE_OFFSET, note_targets, parse_markdown, render_markdown
-from md_viewer.notes import NoteError, add_note, delete_note, edit_note, version
+from md_viewer.notes import NoteError, delete_note, set_note, version
 from md_viewer.pdf import PDF_SETUP_HINT, render_pdf
 from md_viewer.registry import live_servers
 from md_viewer.scm import source_control_panel
@@ -61,14 +62,19 @@ def looks_like_text(path: Path) -> bool:
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 
 
-class NoteRequest(BaseModel):
+class NoteDelete(BaseModel):
+    """`DELETE /_notes`: remove the note on `block` of the file at `path`, as the page showed it."""
+
     path: str
     version: str
-    op: Literal["add", "edit", "delete"]
-    block: int | None = None
-    line: int | None = None
+    block: int
+
+
+class NoteSet(NoteDelete):
+    """`PUT /_notes`: set the note on `block`, replacing the one it has."""
+
     quote: str = ""
-    text: str = ""
+    text: str
 
 
 def error(status: int, message: str) -> JSONResponse:
@@ -94,7 +100,7 @@ def write_atomically(path: Path, text: str) -> None:
         raise
 
 
-def apply_note(root: Path, note: NoteRequest) -> JSONResponse:
+def apply_note(root: Path, note: NoteDelete) -> JSONResponse:
     try:
         target = resolve_safe(root, note.path)
     except HTTPException:
@@ -111,20 +117,12 @@ def apply_note(root: Path, note: NoteRequest) -> JSONResponse:
     except UnicodeDecodeError:
         return error(400, "the file is not UTF-8")
     try:
-        if note.op == "add":
-            if not note.text.strip():
-                raise NoteError("a note needs text")
-            tokens, env, source = parse_markdown(text)
-            targets = note_targets(tokens, source, env[LINE_OFFSET])
-            if note.block is None or not 0 <= note.block < len(targets):
-                raise NoteError("no such block")
-            new = add_note(text, targets[note.block][2], note.text, note.quote)
-        elif note.op == "edit":
-            if not note.text.strip():
-                raise NoteError("a note needs text")
-            new = edit_note(text, note.line or 0, note.text)
-        else:
-            new = delete_note(text, note.line or 0)
+        tokens, env, source = parse_markdown(text)
+        targets = note_targets(tokens, source, env[LINE_OFFSET])
+        if not 0 <= note.block < len(targets):
+            raise NoteError("no such block")
+        block = targets[note.block][2]
+        new = set_note(text, block, note.text, note.quote) if isinstance(note, NoteSet) else delete_note(text, block)
     except NoteError as exc:
         return error(400, str(exc))
     write_atomically(target, new)
@@ -133,18 +131,24 @@ def apply_note(root: Path, note: NoteRequest) -> JSONResponse:
 
 def create_app(root: Path, server_id: str | None = None) -> FastAPI:
     """`server_id` is this server's registry id; without one, `/_servers` lists only this server."""
-    # No /docs, /redoc or /openapi.json: those paths belong to the served folder.
-    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+    # API docs live under the viewer's own `_` prefix; /docs and the like belong to the served folder.
+    app = FastAPI(
+        title="md-viewer",
+        version=package_version("md-viewer"),
+        docs_url="/_docs",
+        redoc_url=None,
+        openapi_url="/_openapi.json",
+    )
 
-    @app.get("/_static/style.css")
+    @app.get("/_static/style.css", include_in_schema=False)
     def style() -> Response:
         return Response(STYLE, media_type="text/css")
 
-    @app.get("/_static/pygments.css")
+    @app.get("/_static/pygments.css", include_in_schema=False)
     def pygments_css() -> Response:
         return Response(PYGMENTS_FORMATTER.get_style_defs(".code-block"), media_type="text/css")
 
-    @app.get("/_static/client.js")
+    @app.get("/_static/client.js", include_in_schema=False)
     def client() -> Response:
         return Response(CLIENT_JS, media_type="text/javascript")
 
@@ -159,19 +163,36 @@ def create_app(root: Path, server_id: str | None = None) -> FastAPI:
         listed.append({"root": str(root), "label": short_path(root), "url": "/", "current": True})
         return JSONResponse(sorted(listed, key=lambda s: s["root"]))
 
-    @app.post("/_notes")
-    async def notes(request: Request) -> Response:
+    async def note_request(request: Request, model: type[NoteDelete]) -> NoteDelete | JSONResponse:
+        """The request's note, or the error to answer with."""
         if not same_origin(request):
             return error(403, "notes are accepted only from this viewer's own pages")
         if request.headers.get("content-type", "").split(";")[0].strip() != "application/json":
             return error(415, "send JSON")
         try:
-            note = NoteRequest.model_validate(json.loads(await request.body()))
+            return model.model_validate(json.loads(await request.body()))
         except (ValueError, ValidationError) as exc:
             return error(400, f"bad request: {exc}")
-        return apply_note(root, note)
 
-    @app.get("/{request_path:path}")
+    def body_schema(model: type[BaseModel]) -> dict[str, Any]:
+        # The body is read by hand, so the origin and JSON checks come first; this is for the docs.
+        return {
+            "requestBody": {"content": {"application/json": {"schema": model.model_json_schema()}}, "required": True}
+        }
+
+    @app.put("/_notes", openapi_extra=body_schema(NoteSet))
+    async def set_note_route(request: Request) -> Response:
+        """Set a block's note, replacing the one it has."""
+        note = await note_request(request, NoteSet)
+        return note if isinstance(note, JSONResponse) else apply_note(root, note)
+
+    @app.delete("/_notes", openapi_extra=body_schema(NoteDelete))
+    async def delete_note_route(request: Request) -> Response:
+        """Remove a block's note."""
+        note = await note_request(request, NoteDelete)
+        return note if isinstance(note, JSONResponse) else apply_note(root, note)
+
+    @app.get("/{request_path:path}", include_in_schema=False)
     def serve(request: Request, request_path: str = "", view: str = "") -> Response:
         target = resolve_safe(root, request_path)
         if not target.exists():

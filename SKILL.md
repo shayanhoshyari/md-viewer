@@ -5,14 +5,14 @@ description: Serve markdown in the browser with section numbers, a table of cont
 
 # Markdown viewer
 
-`bin/md-serve` serves a folder of markdown and source files as browsable pages. The user can run the same command from a terminal (as `md-serve` if it is linked onto their `PATH`).
+`bin/md-viewer serve` serves a folder of markdown and source files as browsable pages, and `bin/md-viewer notes` lists the notes left in them. The user can run the same commands from a terminal (as `md-viewer` if it is linked onto their `PATH`).
 
 ## Run it
 
 Start it in the background (Bash `run_in_background`), then give the user the URL it prints:
 
 ```bash
-${CLAUDE_SKILL_DIR}/bin/md-serve <path>
+${CLAUDE_SKILL_DIR}/bin/md-viewer serve <path>
 ```
 
 - `<path>` is a folder, served as the root, or a file, which serves its parent folder; the printed URL opens that file. It defaults to the current directory.
@@ -29,12 +29,12 @@ The Diff tab has a source control panel on the right (changed files, then Uncomm
 
 ## Notes
 
-On the Rendered tab, the user can leave notes on a block (hover it, click **+ note**; selecting text first quotes it). They are saved into the file as comment lines right after the block, e.g. `<!-- note "quoted words": tighten this -->`. [DESIGN.md](DESIGN.md#notes) has the format.
+On the Rendered tab, the user can leave a note on a block or a table row (hover it, click **+ note**; selecting text first quotes it), one per block. They are saved into the file as comments: a line right after the block, e.g. `<!-- note "quoted words": tighten this -->`, or at the end of a table row's line, e.g. `| Acme | open | <!-- note: follow up -->`. In a note, `\|` stands for `|`. [DESIGN.md](DESIGN.md#notes) has the format.
 
 When asked to check, handle or address the notes:
 
-1. `grep -rn '<!-- note' <file or folder>` to find them.
-2. Act on each one; the block above it (and the quote, if any) is what it refers to.
-3. Delete the note lines that were handled. Leave the rest and say why.
+1. `${CLAUDE_SKILL_DIR}/bin/md-viewer notes <file or folder>` lists each note with its file and line, the block it's on and that block's source, and the quote if any. Read more of the file only where a note needs it.
+2. Act on each one.
+3. Delete the notes that were handled: a note line whole, a row note with the space before it. Leave the rest and say why.
 
 The PDF tab needs `brew install pango`; without it that tab shows the hint and everything else works.

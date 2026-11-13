@@ -95,6 +95,16 @@ def test_fastapi_builtin_routes_do_not_shadow_files(tmp_path: Path) -> None:
     assert client.get("/openapi.json?view=raw").text == '{"mine": true}\n'
 
 
+def test_api_docs_list_only_the_api(tmp_path: Path) -> None:
+    client = TestClient(create_app(tmp_path))
+    assert "swagger" in client.get("/_docs").text.lower()
+    schema = client.get("/_openapi.json").json()
+    assert sorted(schema["paths"]) == ["/_notes", "/_servers", "/_whoami"]
+    notes = schema["paths"]["/_notes"]
+    assert sorted(notes) == ["delete", "put"]
+    assert "text" in notes["put"]["requestBody"]["content"]["application/json"]["schema"]["properties"]
+
+
 @pytest.mark.parametrize("base", ["--output=x", "HEAD~1", "abc", "a" * 41, "ABCDEF0"])
 def test_diff_request_rejects_bad_base(base: str) -> None:
     with pytest.raises(BadDiffParam):

@@ -282,6 +282,8 @@ html.scm-hidden .scm { display: none; }
   background: #fff8c5; border: 1px solid #d4a72c; border-left-width: 4px; border-radius: 4px;
   font-size: 0.9em; margin: 0.4rem 0 0.8rem; padding: 0.4rem 0.6rem;
 }
+.markdown-body tr.md-note-row > td { background: var(--bg); padding: 0 0.5rem; }
+.md-note-row .md-note, .md-note-row .note-editor { margin: 0.3rem 0; }
 .md-note-quote { border-left: 2px solid #d4a72c; color: var(--muted); font-style: italic; margin-bottom: 0.2rem; padding-left: 0.5rem; }
 .md-note-text { white-space: pre-wrap; }
 .md-note-tools { float: right; }

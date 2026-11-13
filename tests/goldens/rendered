@@ -82,46 +82,46 @@ Text on the next line.</p>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr data-block="14">
 <td>b</td>
 <td style="text-align:right">10</td>
 </tr>
-<tr>
+<tr data-block="15">
 <td>a</td>
 <td style="text-align:right">2</td>
 </tr>
 </tbody>
 </table>
-<h2 id="diagrams" data-block="14">4. Diagrams</h2>
-<div class="md-block" data-block="15">
+<h2 id="diagrams" data-block="16">4. Diagrams</h2>
+<div class="md-block" data-block="17">
 <div class="mermaid">graph TD; A--&gt;B
 </div>
 </div>
-<div class="md-block" data-block="16">
+<div class="md-block" data-block="18">
 <figure class="plantuml"><a href="https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuNBCoKnELT2rKt3AJx9IoCZaSaZDIm59000" target="_blank" rel="noopener noreferrer"><img src="https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuNBCoKnELT2rKt3AJx9IoCZaSaZDIm59000" alt="PlantUML diagram (source below)" loading="lazy" referrerpolicy="no-referrer"></a><details><summary>Diagram source · rendered by public PlantUML server</summary><pre><code>@startuml
 Alice -&gt; Bob: hi
 @enduml
 </code></pre></details></figure>
 </div>
-<h2 id="code" data-block="17">5. Code</h2>
-<div class="md-block" data-block="18">
+<h2 id="code" data-block="19">5. Code</h2>
+<div class="md-block" data-block="20">
 <div class="code-block" data-lang="python"><pre><code><span class="line" id="L-1"><span class="k">def</span><span class="w"> </span><span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span></span><span class="line" id="L-2">    <span class="k">return</span> <span class="sa">f</span><span class="s2">"hi </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span></span></code></pre></div>
 </div>
-<div class="md-block" data-block="19">
+<div class="md-block" data-block="21">
 <div class="code-block"><pre><code><span class="line" id="L-1">plain text</span></code></pre></div>
 </div>
-<div class="md-block" data-block="20">
+<div class="md-block" data-block="22">
 <div class="code-block"><pre><code><span class="line" id="L-1">no language</span></code></pre></div>
 </div>
-<h2 id="math" data-block="21">6. Math</h2>
-<p data-block="22">Inline <span class="math inline">e^{i\pi} + 1 = 0</span>, but $5 and $200k and SQL <code>$1</code> stay text.</p>
-<div class="md-block" data-block="23">
+<h2 id="math" data-block="23">6. Math</h2>
+<p data-block="24">Inline <span class="math inline">e^{i\pi} + 1 = 0</span>, but $5 and $200k and SQL <code>$1</code> stay text.</p>
+<div class="md-block" data-block="25">
 <div id="eq1" class="math block">
 <a href="#eq1" class="mathlabel" title="Permalink to this equation">¶</a>
 \int_0^1 x\,dx = \tfrac12
 </div>
 </div>
-<h4 id="deep-heading" data-block="24">6.0.1. Deep heading</h4>
+<h4 id="deep-heading" data-block="26">6.0.1. Deep heading</h4>
 <div>raw html</div>
 <hr class="footnotes-sep" />
 <section class="footnotes">

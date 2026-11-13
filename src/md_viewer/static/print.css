@@ -16,4 +16,4 @@ body { display: block; min-height: 0; font-size: 10.5pt; }
 .content h1, .content h2, .content h3 { break-after: avoid; }
 .content thead { display: table-header-group; }
 .content tr, .plantuml, .markdown-alert { break-inside: avoid; }
-.md-note { display: none; }
+.md-note, .md-note-row { display: none; }

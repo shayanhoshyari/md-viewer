@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.0 - 2026-11-13
+
+- Notes on table rows: hover a row and click **+ note**. The note is saved at the end of the row's line (`| a | b | <!-- note: … -->`), which tables ignore, and shows in a full-width row below it that moves with the row when sorting. Hovering the header row notes the whole table.
+- One note per block: a block with a note offers ✎ and × instead of **+ note**, and saving replaces its note.
+- **Breaking** for scripts calling the API: `POST /_notes` with `add`/`edit`/`delete` is replaced by `PUT /_notes` (set a block's note) and `DELETE /_notes` (remove it), both addressed by block.
+- `md-viewer notes` lists row notes with their table's header and the row.
+
+## 0.8.0 - 2026-11-13
+
+- **Breaking**: the command is now `md-viewer`, with subcommands; `md-serve PATH` becomes `md-viewer serve PATH`. `python -m md_viewer` runs the same command.
+- `md-viewer notes [PATH]` lists the notes in a file or folder, each with the block it's on and that block's source, so handling notes doesn't need the whole file.
+- Swagger UI for the viewer's API at `/_docs`, with the schema at `/_openapi.json`.
+
 ## 0.7.0 - 2026-11-12
 
 - A ⧉ button beside the sidebar header copies the served folder's path, ready to `cd` into and start `claude`.

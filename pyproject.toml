@@ -1,6 +1,6 @@
 [project]
 name = "md-viewer"
-version = "0.7.0"
+version = "0.9.0"
 description = "Serve local markdown and source files as browsable pages"
 requires-python = ">=3.13"
 dependencies = [
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-md-serve = "md_viewer.cli:main"
+md-viewer = "md_viewer.cli:main"
 
 [project.optional-dependencies]
 dev = [

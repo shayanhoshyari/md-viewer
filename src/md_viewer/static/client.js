@@ -92,11 +92,16 @@ window.addEventListener('hashchange', function () {
 });
 
 // Click a table header to sort by that column: ascending, descending, then the
-// file's original order again.
+// file's original order again. A row's note row moves with it.
 document.querySelectorAll('.content table').forEach(function (table) {
   var body = table.tBodies[0];
   if (!body) return;
-  var original = Array.prototype.slice.call(body.rows);
+  var original = Array.prototype.filter.call(body.rows, function (r) { return !r.classList.contains('md-note-row'); });
+  var noteRows = new Map();
+  Array.prototype.forEach.call(body.rows, function (r) {
+    var prev = r.previousElementSibling;
+    if (r.classList.contains('md-note-row') && prev) noteRows.set(prev, r);
+  });
   var headers = table.querySelectorAll('thead th');
   headers.forEach(function (th, col) {
     th.addEventListener('click', function () {
@@ -112,7 +117,10 @@ document.querySelectorAll('.content table').forEach(function (table) {
           return next === 'asc' ? c : -c;
         });
       }
-      rows.forEach(function (r) { body.appendChild(r); });
+      rows.forEach(function (r) {
+        body.appendChild(r);
+        if (noteRows.has(r)) body.appendChild(noteRows.get(r));
+      });
     });
   });
 });
@@ -231,9 +239,10 @@ if (scmToggle) {
   });
 }
 
-// Notes: on a rendered page, hovering a block shows "+ note"; with text selected in a block it
-// quotes the selection. Notes are saved into the file as comment lines and shown as boxes with
-// edit and delete. Every save reloads the page, so it always shows the file as it is.
+// Notes: on a rendered page, hovering a block without a note shows "+ note"; with text selected in
+// a block it quotes the selection. A table's body rows are blocks; its header row stands for the
+// table. Notes are saved into the file as comments, one per block, and shown as boxes with edit and
+// delete. Every save reloads the page, so it always shows the file as it is.
 (function () {
   var doc = document.querySelector('.markdown-body[data-notes-version]');
   if (!doc) return;
@@ -258,6 +267,10 @@ if (scmToggle) {
   document.addEventListener('mouseover', function (e) {
     if (e.target === add || doc.querySelector('.note-editor')) return;
     var block = e.target.closest && e.target.closest('[data-block]');
+    if (block && (e.target.closest('.md-note, .md-note-row') || block.hasAttribute('data-noted'))) {
+      add.hidden = true; hovered = null;
+      return;
+    }
     if (!block || !doc.contains(block)) {
       // Content that takes no notes (raw HTML, footnotes) hides the button, so it never seems to
       // belong there. Gaps between blocks and the margin keep it, so the pointer can reach it.
@@ -273,7 +286,7 @@ if (scmToggle) {
     if (!sel || sel.isCollapsed) return null;
     var node = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement);
     var block = node && node.closest('[data-block]');
-    if (!block || !doc.contains(block)) return null;
+    if (!block || !doc.contains(block) || block.hasAttribute('data-noted')) return null;
     return { block: block, quote: sel.toString().trim() };
   }
 
@@ -286,11 +299,12 @@ if (scmToggle) {
     openEditor({ block: picked.block, quote: picked.quote, text: '' });
   });
 
-  function send(body, editor) {
+  // method: PUT to set a block's note, DELETE to remove it.
+  function send(method, body, editor) {
     body.path = path;
     body.version = fileVersion;
     return fetch('/_notes', {
-      method: 'POST',
+      method: method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }).then(function (r) {
@@ -313,7 +327,8 @@ if (scmToggle) {
     doc.parentElement.insertBefore(bar, doc);
   }
 
-  // opts: { block, quote, text } for a new note, or { note, line, quote, text } to edit one.
+  // opts: { block, quote, text } for a new note, or { note, block, quote, text } to edit one, where
+  // block is the block's element for a new note and its number for an edit.
   function openEditor(opts) {
     var existing = doc.querySelector('.note-editor');
     if (existing) existing.remove();
@@ -345,9 +360,18 @@ if (scmToggle) {
     row.append(save, cancel, hint, err);
     editor.append(area, row);
 
+    var holder = editor;  // what Cancel removes
     if (opts.note) {
       opts.note.hidden = true;
       opts.note.after(editor);
+    } else if (opts.block.tagName === 'TR') {
+      holder = document.createElement('tr');
+      holder.className = 'md-note-row';
+      var cell = document.createElement('td');
+      cell.colSpan = opts.block.closest('table').querySelectorAll('thead th').length || 1;
+      cell.appendChild(editor);
+      holder.appendChild(cell);
+      opts.block.after(holder);
     } else if (opts.block.tagName === 'LI') {
       opts.block.appendChild(editor);
     } else {
@@ -359,16 +383,15 @@ if (scmToggle) {
     }
 
     function close() {
-      editor.remove();
+      holder.remove();
       if (opts.note) opts.note.hidden = false;
     }
     function submit() {
       if (!area.value.trim()) { err.textContent = 'A note needs text.'; return; }
       save.disabled = true;
-      var body = opts.note
-        ? { op: 'edit', line: opts.line, text: area.value }
-        : { op: 'add', block: parseInt(opts.block.dataset.block, 10), quote: opts.quote, text: area.value };
-      send(body, editor).then(function () { save.disabled = false; });
+      var block = opts.note ? opts.block : parseInt(opts.block.dataset.block, 10);
+      send('PUT', { block: block, quote: opts.quote, text: area.value }, editor)
+        .then(function () { save.disabled = false; });
     }
     save.addEventListener('click', submit);
     cancel.addEventListener('click', close);
@@ -379,8 +402,8 @@ if (scmToggle) {
     area.focus();
   }
 
-  doc.querySelectorAll('.md-note[data-note-line]').forEach(function (note) {
-    var line = parseInt(note.dataset.noteLine, 10);
+  doc.querySelectorAll('.md-note[data-note-block]').forEach(function (note) {
+    var block = parseInt(note.dataset.noteBlock, 10);
     var tools = document.createElement('span');
     tools.className = 'md-note-tools';
     var edit = document.createElement('button');
@@ -397,11 +420,11 @@ if (scmToggle) {
       var quote = note.querySelector('.md-note-quote');
       openEditor({
         note: note,
-        line: line,
+        block: block,
         quote: quote ? quote.textContent : '',
         text: note.querySelector('.md-note-text').textContent,
       });
     });
-    del.addEventListener('click', function () { send({ op: 'delete', line: line }); });
+    del.addEventListener('click', function () { send('DELETE', { block: block }); });
   });
 })();

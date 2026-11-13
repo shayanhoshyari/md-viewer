@@ -5,8 +5,13 @@ A local web server that shows a folder of markdown and source files as browsable
 ## Command line
 
 ```text
-md-serve [PATH] [--host H] [--port N]
+md-viewer serve [PATH] [--host H] [--port N]
+md-viewer notes [PATH]
 ```
+
+`python -m md_viewer` is the same command.
+
+### md-viewer serve
 
 - `PATH` defaults to the current directory. A folder is served as the root. A file serves its parent folder, and the printed URL opens that file.
 - `--host` defaults to `127.0.0.1`. `--port` defaults to `0`, a free port picked by the OS.
@@ -18,11 +23,25 @@ md-serve [PATH] [--host H] [--port N]
 
 - A path that doesn't exist is a usage error (exit status 2).
 - Once bound, the server registers itself (see [Server list](#server-list)) and unregisters when it shuts down, Ctrl-C and SIGTERM included.
-- `bin/md-serve` runs the package with `uv run --frozen --no-dev --project <skill folder>`, so it works from any directory and through the `~/.local/bin/md-serve` link. The first run builds `.venv/`.
+- `bin/md-viewer` runs the package with `uv run --frozen --no-dev --project <skill folder>`, so it works from any directory and through the `~/.local/bin/md-viewer` link. The first run builds `.venv/`.
+
+### md-viewer notes
+
+Lists the [notes](#notes) in a markdown file, or in every `.md` file under a folder (skipping what the file tree skips), so an agent handling them reads only the notes and the blocks they're on. `PATH` defaults to the current directory. For each note it prints the file and line, the kind of block the note is on and its lines, that block's source (at most 15 lines), the quote if any, and the text:
+
+```text
+plans/next.md:19  paragraph, lines 15-18
+  > The comment is an extra cell past the header's column count,
+  > which markdown-it and GFM drop.
+  quote: the header's column count
+  note: will allowing this after any line be simpler?
+```
+
+Notes are separated by a blank line. A note above every block shows `top of file` and no source. No notes prints nothing. Blocks are found by the same code the server uses to place notes, so the two agree. A path that doesn't exist is a usage error.
 
 ## Routes and views
 
-Every request path is relative to the root. One route serves everything except the three static files, `POST /_notes` (see [Notes](#notes)), and `GET /_whoami` and `GET /_servers` (see [Server list](#server-list)). FastAPI's built-in `/docs`, `/redoc` and `/openapi.json` pages are turned off, so those paths reach the served folder like any other.
+Every request path is relative to the root. One route serves everything except the three static files, `PUT` and `DELETE /_notes` (see [Notes](#notes)), and `GET /_whoami` and `GET /_servers` (see [Server list](#server-list)). The API is described by Swagger UI at `/_docs` and the OpenAPI schema at `/_openapi.json`, which list only the `/_notes`, `/_whoami` and `/_servers` routes. FastAPI's default `/docs`, `/redoc` and `/openapi.json` are off, so those paths reach the served folder like any other.
 
 - `/_static/style.css`, `/_static/client.js`: package files from `static/`. `/_static/pygments.css`: the Pygments `friendly` style, scoped to `.code-block`.
 - A folder redirects to its `README.md`, else its `AGENTS.md`, else shows a listing of its entries (with `../` below the root).
@@ -100,18 +119,24 @@ What `base` compares, old → new:
 
 ## Notes
 
-Quick notes left in the browser for the next Claude session to act on. They live in the markdown file as one comment line each, right after the block they refer to:
+Quick notes left in the browser for the next Claude session to act on. They live in the markdown file as HTML comments, one per block: on its own line right after the block, or at the end of a table row's line.
 
 ```markdown
 <!-- note: tighten this, drop the second example -->
 <!-- note "the selected words": why is this here? -->
+
+| Name | Status |
+| --- | --- |
+| Acme | open | <!-- note: follow up by Friday -->
 ```
 
-- **Format**: a line matching `^\s*<!-- note( "<quote>")?: <text> -->\s*$` is a note, whoever wrote it; no other line is (`<!-- section-numbers: false -->` isn't). In the quote, `"` and `\` are written `\"` and `\\`. The viewer writes notes as one line, with `-->` in the text written `-- >`.
-- **Blocks**: the units the rendered diff cuts: top-level blocks, and the items of top-level lists. A raw HTML block takes no notes, since a line right after it joins it; hovering it hides **+ note**. A note on a list item is indented to the item's content column, so the list stays one list. A new note goes below the block's existing notes.
-- **Rendered view**: each block carries `data-block="<n>"` (fences, math and diagrams in a `div.md-block` wrapper). Hovering one shows **+ note** in the left margin; with text selected inside a block, the note quotes it. The editor opens under the block: ⌘/Ctrl+Enter saves, Esc cancels. Notes show as yellow boxes under their block with ✎ and ×. Every save reloads the page.
-- **Elsewhere**: Source and Raw show note lines as they are. The rendered diff shows notes as the same boxes, as their own blocks, without the buttons. The PDF leaves them out.
-- **Writing**: `POST /_notes` with JSON `{path, version, op: add|edit|delete, block, line, quote, text}`. `version` is the SHA-256 of the file the page showed (the page carries it as `data-notes-version`). `add` takes `block`, and the server finds the line and indent itself; `edit` (text only, the quote is kept) and `delete` take `line`, 1-based, which must be a note. Answers are JSON: `{version}`, or `{error}` with 400 (bad request, not a note, not markdown, no text), 403 (origin), 404 (not under the root), 409 (the file changed since the page loaded) or 415 (not JSON).
+- **Format**: `<!-- note: <text> -->`, or `<!-- note "<quote>": <text> -->` when text was selected, ending its line. Before it is either whitespace only (a note line) or text ending in `|` (a row note). Such a line is a note whoever wrote it; nothing else is (`<!-- section-numbers: false -->` isn't). A note inside a code block is code, not a note. In the quote, `"` and `\` are written `\"` and `\\`; in the quote and the text, `|` is written `\|`, so the comment stays one table cell. The viewer writes notes on one line, with `-->` in the text written `-- >`.
+- **Row notes**: a row note is an extra cell past the header's column count, which tables drop, so the table renders unchanged; on a row with fewer cells than the header it is an empty-looking cell. The header row takes none, since an extra header cell would stop the table being one.
+- **Blocks**: the units the rendered diff cuts (top-level blocks and the items of top-level lists), plus each table body row. A raw HTML block takes no notes, since a line right after it joins it; hovering it hides **+ note**. A note line on a list item is indented to the item's content column, so the list stays one list.
+- **One note per block**: saving a note on a block that has one replaces it. A block holding several hand-written notes shows them all; saving replaces the first.
+- **Rendered view**: each block carries `data-block="<n>"` (fences, math and diagrams in a `div.md-block` wrapper; rows on their `<tr>`), and `data-noted` if it has a note. Hovering a block without a note shows **+ note** in the left margin; hovering a table's header row targets the table. With text selected inside a block, the note quotes it. The editor opens under the block (under a row, in a full-width row): ⌘/Ctrl+Enter saves, Esc cancels. Notes show as yellow boxes under their block, a row's in a full-width row below it, with ✎ and ×; each box carries `data-note-block`. Sorting a table keeps each row's note under it. Every save reloads the page.
+- **Elsewhere**: Source and Raw show notes as they are. The rendered diff shows notes as the same boxes, line notes as their own blocks and row notes inside their table, without the buttons. The PDF leaves them out. `md-viewer notes` lists them (see [md-viewer notes](#md-viewer-notes)).
+- **Writing**: `PUT /_notes` with JSON `{path, version, block, quote, text}` sets the block's note, adding it or replacing the one there; `DELETE /_notes` with `{path, version, block}` removes it. `version` is the SHA-256 of the file the page showed (the page carries it as `data-notes-version`). The server finds the line itself: a new note line goes after the block and any notes below it; a row note is appended to the row's line after one space. Deleting a row note removes it and that space. Answers are JSON: `{version}`, or `{error}` with 400 (bad request, no such block, no note to delete, not markdown, no text), 403 (origin), 404 (not under the root), 409 (the file changed since the page loaded) or 415 (not JSON).
 
 ## Sidebar
 
@@ -146,6 +171,6 @@ The server itself never fetches anything except, for the PDF view, PlantUML SVGs
 
 - It binds `127.0.0.1` by default.
 - Every request path is resolved, symlinks included, and must stay under the root; anything else is a 404.
-- The one write is `POST /_notes`, to a `.md` file under the root. The server builds the new text and refuses unless removing every note line from the old and the new text leaves them identical, so nothing but note lines can change. It also refuses unless the file still has the version the page showed. It writes a temp file in the same folder and renames it over the original, keeping its mode, line endings and final newline.
+- The one write is `PUT` or `DELETE /_notes`, to a `.md` file under the root. The server builds the new text and refuses unless removing every note from the old and the new text (a note line whole; a row note with the one space before it) leaves them identical, so nothing but notes can change. It also refuses unless the file still has the version the page showed. It writes a temp file in the same folder and renames it over the original, keeping its mode, line endings and final newline.
 - Writes are accepted only when `Host` is a loopback name (`127.0.0.1`, `localhost`, `[::1]`, so a rebound DNS name fails), `Origin` is that same `http://host:port`, and the body is `application/json`, which a page on another site can't send without a CORS preflight that the server never grants. Notes therefore work only from the machine running the server.
 - Query values reach git only as commit SHAs that match `^[0-9a-f]{7,40}$` and that `git rev-parse --verify` accepts.
