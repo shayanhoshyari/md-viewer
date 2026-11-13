@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import socket
+import subprocess
+import sys
 import threading
 import time
 from collections.abc import Iterator
@@ -141,3 +143,81 @@ def test_servers_route(state: Path, tmp_path: Path, stubs: list[ThreadingHTTPSer
 def test_servers_route_without_id(tmp_path: Path) -> None:
     listed = TestClient(create_app(tmp_path)).get("/_servers").json()
     assert listed == [{"root": str(tmp_path), "label": str(tmp_path), "url": "/", "current": True}]
+
+
+def test_restart_route_answers_then_execs(state: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[list[str]] = []
+    monkeypatch.setattr("md_viewer.app.os.execv", lambda path, argv: calls.append([path, *argv]))
+    path = entry(state, "self", 8123, str(tmp_path))
+    client = TestClient(create_app(tmp_path, "self", ["/py", "-m", "md_viewer", "serve", str(tmp_path)]))
+    response = client.post("/_restart")
+    assert response.status_code == 202
+    assert calls == [["/py", "/py", "-m", "md_viewer", "serve", str(tmp_path)]]
+    assert not path.exists()
+
+
+def test_restart_route_without_a_command(tmp_path: Path) -> None:
+    assert TestClient(create_app(tmp_path)).post("/_restart").status_code == 404
+
+
+def test_restart_waits_for_a_new_id(state: Path, stubs: list[ThreadingHTTPServer]) -> None:
+    answers = {"id": "old"}
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            self.reply(200, {"id": answers["id"]})
+
+        def do_POST(self) -> None:
+            self.reply(202, {"restarting": True})
+            threading.Timer(0.3, answers.update, kwargs={"id": "new"}).start()
+
+        def reply(self, status: int, data: dict[str, object]) -> None:
+            body = json.dumps(data).encode()
+            self.send_response(status)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args: object) -> None:
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    server.daemon_threads = True
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    stubs.append(server)
+    port = server.server_address[1]
+    assert registry.restart(registry.Server(id="old", port=port, root="/a")) is None
+
+
+def test_restart_reports_a_server_that_cannot(stubs: list[ThreadingHTTPServer]) -> None:
+    stubs.append(stub("old"))  # answers GET only: POST gets 501
+    port = stubs[0].server_address[1]
+    assert registry.restart(registry.Server(id="old", port=port, root="/a")) == "/_restart answered 501"
+
+
+def test_restart_end_to_end(state: Path, tmp_path: Path) -> None:
+    """A real server re-executes itself: same process and port, a new registry id."""
+    site = tmp_path / "site"
+    site.mkdir()
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "md_viewer", "serve", str(site)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+    try:
+        assert proc.stdout is not None
+        port = int(proc.stdout.readline().strip().rsplit(":", 1)[1].strip("/"))
+        deadline = time.monotonic() + 10
+        while not list(state.glob("*.json")) and time.monotonic() < deadline:
+            time.sleep(0.05)
+        [old] = registry.live_servers(None)
+        assert registry.restart(old) is None
+        assert proc.poll() is None
+        lines = iter(proc.stdout.readline, "")  # uvicorn's access log shares stdout
+        assert f"serving {site.resolve()} at http://127.0.0.1:{port}/\n" in lines
+        [new] = registry.live_servers(None)
+        assert new.port == port and new.id != old.id
+    finally:
+        proc.terminate()
+        proc.wait(timeout=10)

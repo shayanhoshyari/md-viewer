@@ -99,7 +99,7 @@ def test_api_docs_list_only_the_api(tmp_path: Path) -> None:
     client = TestClient(create_app(tmp_path))
     assert "swagger" in client.get("/_docs").text.lower()
     schema = client.get("/_openapi.json").json()
-    assert sorted(schema["paths"]) == ["/_notes", "/_servers", "/_whoami"]
+    assert sorted(schema["paths"]) == ["/_notes", "/_restart", "/_servers", "/_whoami"]
     notes = schema["paths"]["/_notes"]
     assert sorted(notes) == ["delete", "put"]
     assert "text" in notes["put"]["requestBody"]["content"]["application/json"]["schema"]["properties"]

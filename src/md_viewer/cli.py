@@ -1,11 +1,13 @@
-"""`md-viewer serve` (bind a socket, print the URL line, run uvicorn) and `md-viewer notes`."""
+"""`md-viewer serve` (bind a socket, print the URL line, run uvicorn), `notes`, `links` and `restart`."""
 
 from __future__ import annotations
 
 import argparse
 import os
 import socket
+import sys
 from collections.abc import AsyncGenerator
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,15 +17,17 @@ import uvicorn
 from fastapi import FastAPI
 
 from md_viewer.app import create_app
-from md_viewer.layout import EXCLUDE
+from md_viewer.layout import EXCLUDE, short_path
+from md_viewer.links import check_links
 from md_viewer.markdown import find_notes
-from md_viewer.registry import register, unregister
+from md_viewer.registry import live_servers, register, restart, unregister
 
 
 @dataclass(frozen=True)
 class Target:
     """`md-viewer serve`: what to serve, before any socket is bound."""
 
+    path: Path
     root: Path
     host: str
     port: int
@@ -32,12 +36,28 @@ class Target:
     def url_line(self, port: int) -> str:
         return f"serving {self.root} at http://{self.host}:{port}/{self.page_path}"
 
+    def restart_argv(self, port: int) -> list[str]:
+        """The command `POST /_restart` re-executes: the same target, on the port actually bound."""
+        return [sys.executable, "-m", "md_viewer", "serve", str(self.path), "--host", self.host, "--port", str(port)]
+
 
 @dataclass(frozen=True)
 class NotesTarget:
     """`md-viewer notes`: the markdown files to list notes from."""
 
     files: list[Path]
+
+
+@dataclass(frozen=True)
+class LinksTarget:
+    """`md-viewer links`: the markdown files to check."""
+
+    files: list[Path]
+
+
+@dataclass(frozen=True)
+class RestartTarget:
+    """`md-viewer restart`: every running server."""
 
 
 EXCERPT_LINES = 15
@@ -56,6 +76,17 @@ def build_parser() -> argparse.ArgumentParser:
         "notes", help="list notes with the blocks they're on", description="List notes with the blocks they're on."
     )
     notes.add_argument("path", nargs="?", default=Path.cwd(), type=Path, help="markdown file or folder")
+    links = commands.add_parser(
+        "links",
+        help="list relative links to missing files or headings",
+        description="List relative links and images that point at a missing file or heading.",
+    )
+    links.add_argument("path", nargs="?", default=Path.cwd(), type=Path, help="markdown file or folder")
+    commands.add_parser(
+        "restart",
+        help="restart every running server on the current code",
+        description="Restart every running server on the current code, keeping its folder and port.",
+    )
     return parser
 
 
@@ -68,18 +99,21 @@ def markdown_files(folder: Path) -> list[Path]:
     return sorted(found)
 
 
-def parse_args(argv: list[str] | None = None) -> Target | NotesTarget:
+def parse_args(argv: list[str] | None = None) -> Target | NotesTarget | LinksTarget | RestartTarget:
     """Turn argv into what to do; a missing path exits with a usage error."""
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command == "restart":
+        return RestartTarget()
     if not args.path.exists():
         parser.error(f"{args.path} does not exist")
-    if args.command == "notes":
-        return NotesTarget(markdown_files(args.path) if args.path.is_dir() else [args.path])
+    if args.command in ("notes", "links"):
+        files = markdown_files(args.path) if args.path.is_dir() else [args.path]
+        return NotesTarget(files) if args.command == "notes" else LinksTarget(files)
     target = args.path.resolve()
     root = target if target.is_dir() else target.parent
     page_path = "" if target == root else quote(target.name)
-    return Target(root=root, host=args.host, port=args.port, page_path=page_path)
+    return Target(path=target, root=root, host=args.host, port=args.port, page_path=page_path)
 
 
 def display_path(path: Path) -> str:
@@ -114,8 +148,28 @@ def notes_report(files: list[Path]) -> str:
     return "\n\n".join(entries)
 
 
+def restart_all() -> int:
+    """`md-viewer restart`: one line per server, exit status 1 when any failed."""
+    servers = live_servers(None)
+    if not servers:
+        return 0
+    with ThreadPoolExecutor(max_workers=min(32, len(servers))) as pool:
+        failures = list(pool.map(restart, servers))
+    for server, failure in zip(servers, failures, strict=True):
+        label = short_path(Path(server.root))
+        print(f"failed {label}: {failure}" if failure is not None else f"restarted {label}  {server.url}")
+    return 1 if any(f is not None for f in failures) else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     target = parse_args(argv)
+    if isinstance(target, RestartTarget):
+        return restart_all()
+    if isinstance(target, LinksTarget):
+        problems = check_links(target.files, display_path)
+        for problem in problems:
+            print(problem)
+        return 1 if problems else 0
     if isinstance(target, NotesTarget):
         report = notes_report(target.files)
         if report:
@@ -138,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         finally:
             unregister(server_id)
 
-    app = create_app(target.root, server_id)
+    app = create_app(target.root, server_id, target.restart_argv(port))
     app.router.lifespan_context = lifespan
     try:
         uvicorn.Server(uvicorn.Config(app, log_level="info")).run(sockets=[sock])

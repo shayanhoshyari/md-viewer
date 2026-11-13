@@ -6,6 +6,7 @@ import http.client
 import json
 import os
 import tempfile
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -14,6 +15,7 @@ from pathlib import Path
 from typing import Literal
 
 PROBE_TIMEOUT = 0.3
+RESTART_TIMEOUT = 15.0
 
 
 def state_dir() -> Path:
@@ -64,20 +66,52 @@ def unregister(server_id: str) -> None:
     (state_dir() / f"{server_id}.json").unlink(missing_ok=True)
 
 
-def probe(port: int, server_id: str) -> Literal["alive", "dead", "busy"]:
-    """Whether the md-viewer with this id answers on this port."""
-    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=PROBE_TIMEOUT)
+def whoami(port: int, timeout: float = PROBE_TIMEOUT) -> str | None:
+    """The id answered by `/_whoami` on this port, or None; raises TimeoutError when it doesn't answer in time."""
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=timeout)
     try:
         conn.request("GET", "/_whoami")
-        response = conn.getresponse()
-        body = json.loads(response.read())
+        body = json.loads(conn.getresponse().read())
     except TimeoutError:
-        return "busy"
+        raise
     except (OSError, ValueError, http.client.HTTPException):
-        return "dead"
+        return None
     finally:
         conn.close()
-    return "alive" if isinstance(body, dict) and body.get("id") == server_id else "dead"
+    return str(body["id"]) if isinstance(body, dict) and body.get("id") is not None else None
+
+
+def probe(port: int, server_id: str) -> Literal["alive", "dead", "busy"]:
+    """Whether the md-viewer with this id answers on this port."""
+    try:
+        return "alive" if whoami(port) == server_id else "dead"
+    except TimeoutError:
+        return "busy"
+
+
+def restart(server: Server) -> str | None:
+    """Ask a server to restart and wait until its port answers with a new id; returns why it failed, or None."""
+    conn = http.client.HTTPConnection("127.0.0.1", server.port, timeout=2)
+    try:
+        conn.request("POST", "/_restart")
+        response = conn.getresponse()
+        response.read()
+        if response.status != 202:
+            return f"/_restart answered {response.status}"
+    except (OSError, http.client.HTTPException):
+        pass  # the process can be replaced before its answer arrives
+    finally:
+        conn.close()
+    deadline = time.monotonic() + RESTART_TIMEOUT
+    while time.monotonic() < deadline:
+        try:
+            answered = whoami(server.port)
+        except TimeoutError:
+            answered = None
+        if answered is not None and answered != server.id:
+            return None
+        time.sleep(0.1)
+    return f"no answer within {RESTART_TIMEOUT:g} s"
 
 
 def read_entry(path: Path) -> Server | None:

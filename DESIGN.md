@@ -7,6 +7,8 @@ A local web server that shows a folder of markdown and source files as browsable
 ```text
 md-viewer serve [PATH] [--host H] [--port N]
 md-viewer notes [PATH]
+md-viewer links [PATH]
+md-viewer restart
 ```
 
 `python -m md_viewer` is the same command.
@@ -39,9 +41,35 @@ plans/next.md:19  paragraph, lines 15-18
 
 Notes are separated by a blank line. A note above every block shows `top of file` and no source. No notes prints nothing. Blocks are found by the same code the server uses to place notes, so the two agree. A path that doesn't exist is a usage error.
 
+### md-viewer links
+
+Lists relative links and images that point at a missing file or heading, in a markdown file or every `.md` file under a folder (skipping what the file tree skips). `PATH` defaults to the current directory.
+
+- A link's target, relative to its file, must exist; a folder counts. A `#anchor` into a `.md` file, or alone for the same file, must be the id of one of its headings as the viewer renders them (GitHub-style slugs, from the same parser). Anchors into other files aren't checked.
+- Links with a scheme or host (`https:`, `mailto:`) aren't checked, so the command is offline. Links in code are not links.
+- It prints one line per problem, `doc.md:12: missing file: other.md` or `doc.md:14: missing anchor: other.md#setup`, with the line the link is on and paths relative to the current directory, and exits 1 if there were any. No problems prints nothing.
+- The checker is part of the [public API](#public-api), so a folder's own checker can depend on the package and add its rules on top of `links_of` and `link_problem`.
+
+### md-viewer restart
+
+Restarts every running server on the code now on disk, for use while developing md-viewer. Each server keeps its process, folder and port, so the terminal or agent task that started it still owns it and open tabs need only a reload.
+
+- It reads the [registry](#server-list) like any reader, pruning dead entries, and sends `POST /_restart` to each live server at once.
+- It then waits, for up to 15 seconds, until each port answers `/_whoami` with a new id.
+- It prints one line per server, sorted by root, `restarted ~/notes  http://127.0.0.1:8000/` or `failed ~/notes: <reason>`, and exits 1 if any failed. No servers prints nothing.
+
+## Public API
+
+Other code imports only what `md_viewer` exports in `__all__`; every other module is internal and can change in any release. Importing `md_viewer` loads the markdown parser but not the server (FastAPI, uvicorn, WeasyPrint).
+
+- `Link`: a relative link or image: `source` file, 1-based `line`, `target` as written, resolved `path`, unquoted `anchor`.
+- `links_of(path) -> list[Link]`: the relative links and images in a markdown file.
+- `link_problem(link) -> str | None`: `missing file: …`, `missing anchor: …`, or None.
+- `check_links(files, display=str) -> list[str]`: the lines `md-viewer links` prints.
+
 ## Routes and views
 
-Every request path is relative to the root. One route serves everything except the three static files, `PUT` and `DELETE /_notes` (see [Notes](#notes)), and `GET /_whoami` and `GET /_servers` (see [Server list](#server-list)). The API is described by Swagger UI at `/_docs` and the OpenAPI schema at `/_openapi.json`, which list only the `/_notes`, `/_whoami` and `/_servers` routes. FastAPI's default `/docs`, `/redoc` and `/openapi.json` are off, so those paths reach the served folder like any other.
+Every request path is relative to the root. One route serves everything except the three static files, `PUT` and `DELETE /_notes` (see [Notes](#notes)), `GET /_whoami`, `GET /_servers` and `POST /_restart` (see [Server list](#server-list)). The API is described by Swagger UI at `/_docs` and the OpenAPI schema at `/_openapi.json`, which list only the `/_notes`, `/_whoami`, `/_servers` and `/_restart` routes. FastAPI's default `/docs`, `/redoc` and `/openapi.json` are off, so those paths reach the served folder like any other.
 
 - `/_static/style.css`, `/_static/client.js`: package files from `static/`. `/_static/pygments.css`: the Pygments `friendly` style, scoped to `.code-block`.
 - A folder redirects to its `README.md`, else its `AGENTS.md`, else shows a listing of its entries (with `../` below the root).
@@ -153,6 +181,7 @@ Every running md-viewer is listed at the top of every page, so you can jump betw
 - **Registry**: `$XDG_STATE_HOME/md-viewer/servers/` (default `~/.local/state/md-viewer/servers/`), or `MD_VIEWER_STATE_DIR`. Each server writes one file, `<id>.json` with `{id, pid, host, port, root, started}`, where `id` is a random UUID. The file is written to a temp name and renamed into place. A server writes and deletes only its own file, except that a reader deletes the files of servers it found dead.
 - **Liveness**: `GET /_whoami` answers `{id, root}`. An entry is alive when `http://127.0.0.1:<port>/_whoami` answers its `id` within 300 ms. All entries are probed at once, in threads. Connection refused, a different `id`, a bad answer or an unreadable file deletes the entry. A timeout hides it but keeps it, in case the server is only busy. The server's own entry isn't probed.
 - **`GET /_servers`**: `[{root, label, url, current}]`, sorted by root. `label` is the root with the home folder written `~`. This server is included with `url` `/` and `current` true. An app made without a registry id lists only itself.
+- **`POST /_restart`**: answers 202, then, after the answer is sent, the server deletes its registry entry and replaces itself with `os.execv`, running `python -m md_viewer serve <path> --host <host> --port <bound port>`. The process ID, parent, output and working folder stay; the code is loaded again from disk. The port is the one actually bound, so a server started on a free port comes back on the same one. There is no graceful shutdown: requests in flight are dropped. The entry is deleted first because the new process registers under a new id, and the old entry, with the same process and port, would otherwise still look alive. An app made without a restart command answers 404.
 - **Sidebar**: the header is this server's folder name, with the `~` path as its tooltip. Beside it, a ⧉ button copies the absolute root path to the clipboard (for `cd` and starting `claude` there) and shows ✓ for a moment. Clicking it opens a list fetched from `/_servers` each time it opens, showing each other server's folder name with its `~` path below, linking to its `url`. While loading it says "Looking…"; with none it says "No other servers".
 
 ## PDF

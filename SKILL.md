@@ -1,11 +1,11 @@
 ---
 name: md-viewer
-description: Serve markdown in the browser with section numbers, a table of contents, a file tree, diagrams and math, plus git diffs with a source control panel and notes left from the browser. Use this when the user wants to read or preview a markdown file or folder in a browser, asks to open, view, or serve markdown, or wants to see in a browser what changed in a file or commit. Also use it when asked to check, handle or address notes left in markdown files (`<!-- note: … -->` lines).
+description: Serve markdown in the browser with section numbers, a table of contents, a file tree, diagrams and math, plus git diffs with a source control panel and notes left from the browser. Use this when the user wants to read or preview a markdown file or folder in a browser, asks to open, view, or serve markdown, or wants to see in a browser what changed in a file or commit. Also use it when asked to check, handle or address notes left in markdown files (`<!-- note: … -->` lines), or to check the links in markdown files.
 ---
 
 # Markdown viewer
 
-`bin/md-viewer serve` serves a folder of markdown and source files as browsable pages, and `bin/md-viewer notes` lists the notes left in them. The user can run the same commands from a terminal (as `md-viewer` if it is linked onto their `PATH`).
+`bin/md-viewer serve` serves a folder of markdown and source files as browsable pages, `bin/md-viewer notes` lists the notes left in them, and `bin/md-viewer links` checks their links. The user can run the same commands from a terminal (as `md-viewer` if it is linked onto their `PATH`).
 
 ## Run it
 
@@ -20,6 +20,7 @@ ${CLAUDE_SKILL_DIR}/bin/md-viewer serve <path>
 - The first run builds the skill's venv, which takes a minute; uv prints its progress.
 - Every running server is listed at the top of the sidebar; clicking one switches to it. The ⧉ beside it copies the root path.
 - To show a different file under the same root, give its URL rather than starting a second server: `http://127.0.0.1:<port>/<path relative to root>`. Headings link as `#<github-style-slug>`.
+- After changing md-viewer's own code, `${CLAUDE_SKILL_DIR}/bin/md-viewer restart` restarts every running server on the new code, each on its folder and port; open tabs need a reload.
 
 ## What it shows
 
@@ -36,5 +37,9 @@ When asked to check, handle or address the notes:
 1. `${CLAUDE_SKILL_DIR}/bin/md-viewer notes <file or folder>` lists each note with its file and line, the block it's on and that block's source, and the quote if any. Read more of the file only where a note needs it.
 2. Act on each one.
 3. Delete the notes that were handled: a note line whole, a row note with the space before it. Leave the rest and say why.
+
+## Links
+
+When asked to check links in markdown, or after edits where a folder's instructions ask for it, run `${CLAUDE_SKILL_DIR}/bin/md-viewer links <file or folder>`. It prints `path:line: missing file: …` or `missing anchor: …` for each relative link or image that points at a missing file or heading, using the same heading anchors the viewer renders, and nothing when all is well. Fix each one: correct the path or anchor, or drop the link. External URLs aren't checked.
 
 The PDF tab needs `brew install pango`; without it that tab shows the hint and everything else works.

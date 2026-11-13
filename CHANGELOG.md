@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12.0 - 2026-11-13
+
+- A public API: `from md_viewer import Link, links_of, link_problem, check_links`. Everything else in the package is internal.
+
+## 0.11.0 - 2026-11-13
+
+- `md-viewer links [PATH]` lists relative links and images that point at a missing file or heading, using the viewer's own heading anchors. `md_viewer.links` can be imported by other checkers.
+
+## 0.10.0 - 2026-11-13
+
+- `md-viewer restart` restarts every running server on the code now on disk. Each keeps its process, folder and port, so open tabs only need a reload. It works through a new `POST /_restart` route.
+
 ## 0.9.0 - 2026-11-13
 
 - Notes on table rows: hover a row and click **+ note**. The note is saved at the end of the row's line (`| a | b | <!-- note: … -->`), which tables ignore, and shows in a full-width row below it that moves with the row when sorting. Hovering the header row notes the whole table.

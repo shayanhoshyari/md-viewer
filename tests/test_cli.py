@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from md_viewer.cli import NotesTarget, Target, main, notes_report, parse_args
+from md_viewer.registry import Server
 
 
 def serve(argv: list[str]) -> Target:
@@ -111,3 +112,34 @@ def test_notes_report_on_a_row(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.chdir(tmp_path)
     (tmp_path / "a.md").write_text("# T\n\n| a | b |\n| - | - |\n| 1 | 2 |\n| 3 | 4 | <!-- note: x \\| y -->\n")
     assert notes_report([Path("a.md")]) == ("a.md:6  table row, line 6\n  > | a | b |\n  > | 3 | 4 |\n  note: x | y")
+
+
+def test_restart_reuses_the_target_and_bound_port(tmp_path: Path) -> None:
+    (tmp_path / "notes.md").write_text("# hi\n")
+    argv = serve([str(tmp_path / "notes.md")]).restart_argv(8123)
+    assert argv[1:] == [
+        "-m",
+        "md_viewer",
+        "serve",
+        str(tmp_path.resolve() / "notes.md"),
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8123",
+    ]
+
+
+def test_restart_command_reports_each_server(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    servers = [Server(id="a", port=1, root="/a"), Server(id="b", port=2, root="/b")]
+    monkeypatch.setattr("md_viewer.cli.live_servers", lambda _: servers)
+    monkeypatch.setattr("md_viewer.cli.restart", lambda s: None if s.id == "a" else "no answer within 15 s")
+    assert main(["restart"]) == 1
+    assert capsys.readouterr().out == "restarted /a  http://127.0.0.1:1/\nfailed /b: no answer within 15 s\n"
+
+
+def test_restart_command_without_servers(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    monkeypatch.setattr("md_viewer.cli.live_servers", lambda _: [])
+    assert main(["restart"]) == 0
+    assert capsys.readouterr().out == ""

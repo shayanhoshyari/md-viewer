@@ -7,6 +7,7 @@ import html
 import json
 import mimetypes
 import os
+import sys
 import tempfile
 from importlib.metadata import version as package_version
 from pathlib import Path
@@ -16,6 +17,7 @@ from urllib.parse import quote
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from pydantic import BaseModel, ValidationError
+from starlette.background import BackgroundTask
 
 from md_viewer.diff import render_diff
 from md_viewer.highlight import PYGMENTS_FORMATTER, render_source
@@ -23,7 +25,7 @@ from md_viewer.layout import CLIENT_JS, STYLE, directory_listing, page, resolve_
 from md_viewer.markdown import LINE_OFFSET, note_targets, parse_markdown, render_markdown
 from md_viewer.notes import NoteError, delete_note, set_note, version
 from md_viewer.pdf import PDF_SETUP_HINT, render_pdf
-from md_viewer.registry import live_servers
+from md_viewer.registry import live_servers, unregister
 from md_viewer.scm import source_control_panel
 
 BINARY_EXTS = {".gif", ".ico", ".jpeg", ".jpg", ".pdf", ".png", ".svg", ".webp"}
@@ -129,8 +131,20 @@ def apply_note(root: Path, note: NoteDelete) -> JSONResponse:
     return JSONResponse({"version": version(new.encode("utf-8"))})
 
 
-def create_app(root: Path, server_id: str | None = None) -> FastAPI:
-    """`server_id` is this server's registry id; without one, `/_servers` lists only this server."""
+def exec_restart(server_id: str | None, argv: list[str]) -> None:
+    """Replace this process with `argv`, after removing its registry entry."""
+    if server_id is not None:
+        unregister(server_id)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os.execv(argv[0], argv)
+
+
+def create_app(root: Path, server_id: str | None = None, restart_argv: list[str] | None = None) -> FastAPI:
+    """`server_id` is this server's registry id; without one, `/_servers` lists only this server.
+
+    `restart_argv` is the command `POST /_restart` replaces the process with; without one, it answers 404.
+    """
     # API docs live under the viewer's own `_` prefix; /docs and the like belong to the served folder.
     app = FastAPI(
         title="md-viewer",
@@ -162,6 +176,15 @@ def create_app(root: Path, server_id: str | None = None) -> FastAPI:
         listed = [{"root": s.root, "label": short_path(Path(s.root)), "url": s.url, "current": False} for s in found]
         listed.append({"root": str(root), "label": short_path(root), "url": "/", "current": True})
         return JSONResponse(sorted(listed, key=lambda s: s["root"]))
+
+    @app.post("/_restart", status_code=202)
+    def restart() -> JSONResponse:
+        """Reload the code: the server re-executes itself on the same folder and port, after this answer."""
+        if restart_argv is None:
+            return error(404, "this server can't restart itself")
+        return JSONResponse(
+            {"restarting": True}, status_code=202, background=BackgroundTask(exec_restart, server_id, restart_argv)
+        )
 
     async def note_request(request: Request, model: type[NoteDelete]) -> NoteDelete | JSONResponse:
         """The request's note, or the error to answer with."""

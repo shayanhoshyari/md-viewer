@@ -8,4 +8,5 @@
 - `tests/goldens/` holds saved responses. When a change is meant to alter output, run `make goldens` and review the diff.
 - Each user-visible change goes in `CHANGELOG.md` with a version bump in `pyproject.toml`.
 - New work starts as a plan in `plans/NN-slug.md`.
-- This folder is mirrored to the public repo `shayanhoshyari/md-viewer` by `make publish`, without `plans/`; xiaoverse is the source of truth. Keep everything else here safe to publish: no personal names, paths or details, including in tests and goldens.
+- Code outside this folder imports only what `md_viewer/__init__.py` exports in `__all__`, the public API. A change to it is called out in `CHANGELOG.md`, and `tests/test_api.py` pins it.
+- This folder is mirrored to the public repo `shayanhoshyari/md-viewer` by `make publish`, without `plans/` and `scripts/`; xiaoverse is the source of truth. Keep everything else here safe to publish: no personal names, paths or details, including in tests and goldens.
