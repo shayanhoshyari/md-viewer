@@ -14,6 +14,7 @@ from md_viewer.app import create_app
 from md_viewer.pdf import pdf_document
 
 GOLDENS = Path(__file__).parent / "goldens"
+STATIC = Path(__file__).parent.parent / "src" / "md_viewer" / "static"
 UPDATE = bool(os.environ.get("MD_VIEWER_UPDATE_GOLDENS"))
 
 # (golden name, which root, request path)
@@ -58,8 +59,6 @@ CASES = [
     ("not-found", "repo", "/missing.md"),
     ("escape-symlink", "repo", "/escape.md"),
     ("escape-dotdot", "repo", "/%2e%2e/outside.md"),
-    ("static-style", "repo", "/_static/style.css"),
-    ("static-client", "repo", "/_static/client.js"),
     ("static-pygments", "repo", "/_static/pygments.css"),
 ]
 
@@ -95,6 +94,14 @@ def test_response(name: str, which: str, url: str, request: pytest.FixtureReques
         head.append(f"location: {response.headers['location']}")
     data = "\n".join(head).encode() + b"\n\n" + response.content
     check(name, normalize(data, [root], commits))
+
+
+@pytest.mark.parametrize(("name", "media_type"), [("style.css", "text/css"), ("client.js", "text/javascript")])
+def test_static_file(name: str, media_type: str, repo: Path) -> None:
+    response = TestClient(create_app(repo)).get(f"/_static/{name}")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith(media_type)
+    assert response.content == (STATIC / name).read_bytes()
 
 
 def test_pdf_document() -> None:

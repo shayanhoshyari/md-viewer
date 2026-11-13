@@ -6,6 +6,7 @@
 - Run `make lint test` before handing off. Tests are offline and drive the app with `TestClient`.
 - Tests don't run `static/client.js`. A change to it is checked in a real browser (the Chrome extension) on a scratch file served by `bin/md-viewer serve`, never on a file that matters.
 - `tests/goldens/` holds saved responses. When a change is meant to alter output, run `make goldens` and review the diff.
+- A test checks behavior the code computes. No golden or assertion that only restates a file or constant back to itself, such as a static asset copied byte for byte.
 - Each user-visible change goes in `CHANGELOG.md` with a version bump in `pyproject.toml`.
 - New work starts as a plan in `plans/NN-slug.md`.
 - Code outside this folder imports only what `md_viewer/__init__.py` exports in `__all__`, the public API. A change to it is called out in `CHANGELOG.md`, and `tests/test_api.py` pins it.
