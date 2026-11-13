@@ -141,7 +141,7 @@ What `base` compares, old → new:
 - **Numbering**: H2–H6 are numbered at render time (`1.`, `1.1.`, …); files are not changed. A line `<!-- section-numbers: false -->` in the first 20 lines, outside a code fence, turns it off.
 - **Outline**: with two or more H2/H3 headings, a collapsible table of contents goes after the H1 (or at the top without one), numbered like the headings.
 - **Callouts**: a top-level quote starting with `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` or `[!CAUTION]` alone on its line becomes a GitHub-style callout.
-- **Tables**: click a header to sort by that column: ascending, descending, then file order.
+- **Tables**: click a header to sort by that column: ascending, descending, then file order. Cells compare as text, with numbers in them compared as numbers. Rows with that cell empty go last in both directions, as in spreadsheets.
 - **Fences**: highlighted like the source view, without line numbers. `mermaid` fences render in the browser with Mermaid. `plantuml` fences become an SVG image from the public PlantUML server, with the source in a collapsed block below.
 - **Math**: `$…$` inline and `$$…$$` blocks, rendered in the browser by KaTeX. A `$` opens math only when followed by a non-space, non-digit, so `$5`, `$200k` and SQL `$1` stay text.
 

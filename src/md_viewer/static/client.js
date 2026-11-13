@@ -92,7 +92,7 @@ window.addEventListener('hashchange', function () {
 });
 
 // Click a table header to sort by that column: ascending, descending, then the
-// file's original order again. A row's note row moves with it.
+// file's original order again. Empty cells stay last. A row's note row moves with it.
 document.querySelectorAll('.content table').forEach(function (table) {
   var body = table.tBodies[0];
   if (!body) return;
@@ -113,6 +113,8 @@ document.querySelectorAll('.content table').forEach(function (table) {
         rows.sort(function (a, b) {
           var x = a.cells[col] ? a.cells[col].textContent.trim() : '';
           var y = b.cells[col] ? b.cells[col].textContent.trim() : '';
+          // Empty cells go last in both directions, as in spreadsheets.
+          if (!x || !y) return (x ? 0 : 1) - (y ? 0 : 1);
           var c = x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' });
           return next === 'asc' ? c : -c;
         });

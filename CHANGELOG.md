@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.0 - 2026-11-13
+
+- Sorting a table puts rows whose cell in that column is empty at the bottom, ascending or descending, as spreadsheets do.
+
 ## 0.12.0 - 2026-11-13
 
 - A public API: `from md_viewer import Link, links_of, link_problem, check_links`. Everything else in the package is internal.
