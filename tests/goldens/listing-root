@@ -29,7 +29,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body>
   <aside class="sidebar">
-    <details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>docs/</summary><ul>
 <li><a href="/docs/README.md">README.md</a></li>

@@ -18,7 +18,7 @@ ${CLAUDE_SKILL_DIR}/bin/md-serve <path>
 - `<path>` is a folder, served as the root, or a file, which serves its parent folder; the printed URL opens that file. It defaults to the current directory.
 - The port is a free one picked at start; read it from the `serving <root> at http://127.0.0.1:<port>/...` line. `--port N` pins one.
 - The first run builds the skill's venv, which takes a minute; uv prints its progress.
-- Every running server is listed at the top of the sidebar; clicking one switches to it.
+- Every running server is listed at the top of the sidebar; clicking one switches to it. The ⧉ beside it copies the root path.
 - To show a different file under the same root, give its URL rather than starting a second server: `http://127.0.0.1:<port>/<path relative to root>`. Headings link as `#<github-style-slug>`.
 
 ## What it shows

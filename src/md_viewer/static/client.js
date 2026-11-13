@@ -209,6 +209,19 @@ document.querySelectorAll('.content table').forEach(function (table) {
   });
 })();
 
+// The ⧉ button beside the sidebar header copies the root path, e.g. to start claude there.
+(function () {
+  var button = document.querySelector('.copy-root');
+  if (!button) return;
+  var label = button.textContent;
+  button.addEventListener('click', function () {
+    navigator.clipboard.writeText(button.dataset.root).then(function () {
+      button.textContent = '\u2713';
+      setTimeout(function () { button.textContent = label; }, 1200);
+    }).catch(function (err) { console.warn('copy failed:', err); });
+  });
+})();
+
 // The source control panel beside the diff hides like the sidebar, remembered per browser.
 var scmToggle = document.querySelector('.scm-toggle');
 if (scmToggle) {

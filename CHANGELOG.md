@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0 - 2026-11-12
+
+- A ⧉ button beside the sidebar header copies the served folder's path, ready to `cd` into and start `claude`.
+
 ## 0.6.1 - 2026-11-12
 
 - A README and MIT license, and `make publish`, which mirrors this folder (without `plans/`) to the public repo `shayanhoshyari/md-viewer`.

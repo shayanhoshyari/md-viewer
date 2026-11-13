@@ -88,7 +88,13 @@ html.scm-hidden .scm { display: none; }
 .scm-choice .scm-subject { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .scm-choice .scm-detail, .scm-empty { color: var(--muted); font-size: 0.9em; }
 .scm-empty { padding: 2px 4px; }
-.servers { margin: 0 0 0.75rem 2rem; }
+.servers-head { margin: 0 0 0.75rem 2rem; position: relative; }
+.servers { margin: 0; padding-right: 1.6rem; }
+.copy-root {
+  background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 0.95rem; line-height: 1.6;
+  padding: 0 0.2rem; position: absolute; right: 0; top: 0;
+}
+.copy-root:hover { color: var(--accent); }
 .servers > summary {
   font-size: 0.95rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   line-height: 1.6;

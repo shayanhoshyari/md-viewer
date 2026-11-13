@@ -93,11 +93,15 @@ def short_path(path: Path) -> str:
 
 
 def servers_html(root: Path) -> str:
-    """The sidebar header: this server's root, opening a list of every running md-viewer (filled by client.js)."""
+    """The sidebar header: this server's root, opening a list of every running md-viewer (filled by client.js),
+    and a button copying the root path."""
     name = html.escape(root.name or str(root))
     return (
+        '<div class="servers-head">'
         f'<details class="servers"><summary title="{html.escape(short_path(root))}">{name}</summary>'
         '<ul class="server-list"><li class="server-note">Looking…</li></ul></details>'
+        f'<button class="copy-root" data-root="{html.escape(str(root))}" title="Copy folder path">&#10697;</button>'
+        "</div>"
     )
 
 
