@@ -1,4 +1,4 @@
-"""`md-viewer serve` (bind a socket, print the URL line, run uvicorn), `notes`, `links` and `restart`."""
+"""`md-viewer serve` (bind a socket, print the URL line, run uvicorn), `notes`, `links`, `list` and `restart`."""
 
 from __future__ import annotations
 
@@ -56,6 +56,11 @@ class LinksTarget:
 
 
 @dataclass(frozen=True)
+class ListTarget:
+    """`md-viewer list`: every running server."""
+
+
+@dataclass(frozen=True)
 class RestartTarget:
     """`md-viewer restart`: every running server."""
 
@@ -83,6 +88,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     links.add_argument("path", nargs="?", default=Path.cwd(), type=Path, help="markdown file or folder")
     commands.add_parser(
+        "list", help="list running servers and their URLs", description="List every running server and its URL."
+    )
+    commands.add_parser(
         "restart",
         help="restart every running server on the current code",
         description="Restart every running server on the current code, keeping its folder and port.",
@@ -99,10 +107,12 @@ def markdown_files(folder: Path) -> list[Path]:
     return sorted(found)
 
 
-def parse_args(argv: list[str] | None = None) -> Target | NotesTarget | LinksTarget | RestartTarget:
+def parse_args(argv: list[str] | None = None) -> Target | NotesTarget | LinksTarget | ListTarget | RestartTarget:
     """Turn argv into what to do; a missing path exits with a usage error."""
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command == "list":
+        return ListTarget()
     if args.command == "restart":
         return RestartTarget()
     if not args.path.exists():
@@ -148,6 +158,13 @@ def notes_report(files: list[Path]) -> str:
     return "\n\n".join(entries)
 
 
+def list_servers() -> int:
+    """`md-viewer list`: one line per running server."""
+    for server in live_servers(None):
+        print(f"{short_path(Path(server.root))}  {server.url}")
+    return 0
+
+
 def restart_all() -> int:
     """`md-viewer restart`: one line per server, exit status 1 when any failed."""
     servers = live_servers(None)
@@ -163,6 +180,8 @@ def restart_all() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     target = parse_args(argv)
+    if isinstance(target, ListTarget):
+        return list_servers()
     if isinstance(target, RestartTarget):
         return restart_all()
     if isinstance(target, LinksTarget):

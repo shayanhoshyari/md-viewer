@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15.0 - 2026-11-14
+
+- `md-viewer list` prints every running server's folder and URL, one per line, for finding one again after closing its tab.
+
 ## 0.14.0 - 2026-11-13
 
 - A table can open already sorted: put `<!-- default-sort: <column> [asc|desc] -->` on the line before it. Clicking headers still re-sorts.

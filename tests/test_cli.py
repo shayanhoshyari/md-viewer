@@ -143,3 +143,16 @@ def test_restart_command_without_servers(monkeypatch: pytest.MonkeyPatch, capsys
     monkeypatch.setattr("md_viewer.cli.live_servers", lambda _: [])
     assert main(["restart"]) == 0
     assert capsys.readouterr().out == ""
+
+
+def test_list_command_prints_each_server(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    servers = [Server(id="a", port=1, root="/a"), Server(id="b", port=2, root=str(Path.home() / "notes"))]
+    monkeypatch.setattr("md_viewer.cli.live_servers", lambda _: servers)
+    assert main(["list"]) == 0
+    assert capsys.readouterr().out == "/a  http://127.0.0.1:1/\n~/notes  http://127.0.0.1:2/\n"
+
+
+def test_list_command_without_servers(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    monkeypatch.setattr("md_viewer.cli.live_servers", lambda _: [])
+    assert main(["list"]) == 0
+    assert capsys.readouterr().out == ""

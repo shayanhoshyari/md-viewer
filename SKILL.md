@@ -20,6 +20,7 @@ ${CLAUDE_SKILL_DIR}/bin/md-viewer serve <path>
 - The first run builds the skill's venv, which takes a minute; uv prints its progress.
 - Every running server is listed at the top of the sidebar; clicking one switches to it. The ⧉ beside it copies the root path.
 - To show a different file under the same root, give its URL rather than starting a second server: `http://127.0.0.1:<port>/<path relative to root>`. Headings link as `#<github-style-slug>`.
+- `${CLAUDE_SKILL_DIR}/bin/md-viewer list` prints every running server's root and URL, for finding one again after its tab is closed.
 - After changing md-viewer's own code, `${CLAUDE_SKILL_DIR}/bin/md-viewer restart` restarts every running server on the new code, each on its folder and port; open tabs need a reload.
 
 ## What it shows

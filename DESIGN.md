@@ -8,6 +8,7 @@ A local web server that shows a folder of markdown and source files as browsable
 md-viewer serve [PATH] [--host H] [--port N]
 md-viewer notes [PATH]
 md-viewer links [PATH]
+md-viewer list
 md-viewer restart
 ```
 
@@ -49,6 +50,10 @@ Lists relative links and images that point at a missing file or heading, in a ma
 - Links with a scheme or host (`https:`, `mailto:`) aren't checked, so the command is offline. Links in code are not links.
 - It prints one line per problem, `doc.md:12: missing file: other.md` or `doc.md:14: missing anchor: other.md#setup`, with the line the link is on and paths relative to the current directory, and exits 1 if there were any. No problems prints nothing.
 - The checker is part of the [public API](#public-api), so a folder's own checker can depend on the package and add its rules on top of `links_of` and `link_problem`.
+
+### md-viewer list
+
+Lists every running server, for finding one again after its tab is closed. It reads the [registry](#server-list) like any reader, pruning dead entries, and prints one line per server, sorted by root, `~/notes  http://127.0.0.1:8000/`. No servers prints nothing. It exits 0.
 
 ### md-viewer restart
 
