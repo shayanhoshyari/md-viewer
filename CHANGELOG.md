@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.0 - 2026-11-14
+
+- A markdown diff opens in Rendered mode; `?mode=text` (or the Text toggle) shows the line diff.
+
 ## 0.15.0 - 2026-11-14
 
 - `md-viewer list` prints every running server's folder and URL, one per line, for finding one again after closing its tab.

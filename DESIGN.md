@@ -103,7 +103,7 @@ The diff view compares two versions of the file. Every choice is a query paramet
 | `to` | `worktree` or a commit SHA; read only when `base` is a SHA | `worktree` |
 | `commit` | a commit SHA: what that commit changed; only with `base=auto` | none |
 | `layout` | `unified`, `split` | `unified` |
-| `mode` | `text`, `rendered` (markdown only; ignored for other files) | `text` |
+| `mode` | `text`, `rendered` (markdown only; ignored for other files) | `rendered` |
 
 An unknown value is a 400 page saying which parameter is wrong. Outside a git repository the page says so.
 

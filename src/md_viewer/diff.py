@@ -29,7 +29,7 @@ class DiffRequest:
     base: str = "auto"
     to: str = "worktree"
     layout: str = "unified"
-    mode: str = "text"
+    mode: str = "rendered"
     commit: str = ""
 
     @classmethod
@@ -37,7 +37,7 @@ class DiffRequest:
         base = query.get("base") or "auto"
         to = query.get("to") or "worktree"
         layout = query.get("layout") or "unified"
-        mode = query.get("mode") or "text"
+        mode = query.get("mode") or "rendered"
         commit = query.get("commit") or ""
         if base not in BASES and not SHA_RE.fullmatch(base):
             raise BadDiffParam(f"base must be one of {', '.join(BASES)} or a commit SHA, not {base!r}")
@@ -54,7 +54,7 @@ class DiffRequest:
         if not SHA_RE.fullmatch(base):
             to = "worktree"
         if not markdown:
-            mode = "text"
+            mode = cls.mode  # ignored: other files only have a text diff
         return cls(base, to, layout, mode, commit)
 
     def query(self, **changes: str) -> str:
@@ -288,7 +288,7 @@ def render_diff(
     if sides.old == sides.new:
         note = '<p class="diff-label">This file has no changes here. Pick a changed file in the panel on the right.</p>'
         return DiffPage(bar + label + note, 200, repo, request, sides.selection)
-    if request.mode == "rendered":
+    if markdown and request.mode == "rendered":
         rendered = rendered_diff(sides.old, sides.new, request.layout)
         return DiffPage(bar + label + rendered, 200, repo, request, sides.selection)
     table = unified_table if request.layout == "unified" else diff_table

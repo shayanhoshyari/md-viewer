@@ -134,7 +134,7 @@ def test_diff_request_rejects_bad_base(base: str) -> None:
 
 def test_diff_request_defaults_and_links() -> None:
     request = DiffRequest.from_query({"to": "abcdef0", "mode": "rendered"}, markdown=False)
-    assert request == DiffRequest()  # `to` needs a SHA base; mode is text for non-markdown
+    assert request == DiffRequest()  # `to` needs a SHA base; mode is ignored for non-markdown
     sha = DiffRequest.from_query({"base": "abcdef0", "to": "1234567"}, markdown=True)
     assert sha.query(layout="split") == "?view=diff&base=abcdef0&to=1234567&layout=split"
     assert sha.query(base="auto") == "?view=diff"
