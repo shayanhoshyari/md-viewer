@@ -30,7 +30,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body class="has-scm">
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>sub/</summary><ul>
 <li><a href="/sub/pair-b.md">pair-b.md</a></li>
@@ -44,7 +44,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">staged.md<div class="views"><a href="/staged.md">Rendered</a><a href="/staged.md?view=diff" class="active">Diff</a><a href="/staged.md?view=source">Source</a><a href="/staged.md?view=raw">Raw</a><a href="/staged.md?view=pdf">PDF</a></div></div>
+    <div class="path">staged.md<button class="copy-path" data-copy="<root>/staged.md" title="Copy full path">&#10697;</button><div class="views"><a href="/staged.md">Rendered</a><a href="/staged.md?view=edit">Edit</a><a href="/staged.md?view=diff" class="active">Diff</a><a href="/staged.md?view=source">Source</a><a href="/staged.md?view=raw">Raw</a><a href="/staged.md?view=pdf">PDF</a></div></div>
     <div class="diff-controls"><span class="toggle"><a href="?view=diff&amp;base=staged&amp;mode=text" class="active">Unified</a><a href="?view=diff&amp;base=staged&amp;layout=split&amp;mode=text">Split</a></span><span class="toggle"><a href="?view=diff&amp;base=staged&amp;mode=text" class="active">Text</a><a href="?view=diff&amp;base=staged">Rendered</a></span></div><p class="diff-label">Staged changes: HEAD → index</p><table class="diff unified"><colgroup><col class="ln"><col class="ln"><col></colgroup><tbody><tr><td class="ln">1</td><td class="ln">1</td><td class="same"># Staged</td></tr><tr><td class="ln">2</td><td class="ln">2</td><td class="same"></td></tr><tr><td class="ln">3</td><td class="ln">3</td><td class="same">First line.</td></tr><tr><td class="ln">4</td><td class="ln"></td><td class="del">Second line.</td></tr><tr><td class="ln"></td><td class="ln">4</td><td class="add">Second line<mark>, staged</mark>.</td></tr><tr><td class="ln">5</td><td class="ln">5</td><td class="same">Third line.</td></tr></tbody></table>
   </main>
   <button class="scm-toggle" title="Toggle source control">&#8644;</button>

@@ -30,7 +30,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body class="has-scm">
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>sub/</summary><ul>
 <li><a href="/sub/pair-b.md">pair-b.md</a></li>
@@ -44,7 +44,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">history.md<div class="views"><a href="/history.md">Rendered</a><a href="/history.md?view=diff" class="active">Diff</a><a href="/history.md?view=source">Source</a><a href="/history.md?view=raw">Raw</a><a href="/history.md?view=pdf">PDF</a></div></div>
+    <div class="path">history.md<button class="copy-path" data-copy="<root>/history.md" title="Copy full path">&#10697;</button><div class="views"><a href="/history.md">Rendered</a><a href="/history.md?view=edit">Edit</a><a href="/history.md?view=diff" class="active">Diff</a><a href="/history.md?view=source">Source</a><a href="/history.md?view=raw">Raw</a><a href="/history.md?view=pdf">PDF</a></div></div>
     <div class="diff-controls"><span class="toggle"><a href="?view=diff&amp;base=<c1>&amp;mode=text" class="active">Unified</a><a href="?view=diff&amp;base=<c1>&amp;layout=split&amp;mode=text">Split</a></span><span class="toggle"><a href="?view=diff&amp;base=<c1>&amp;mode=text" class="active">Text</a><a href="?view=diff&amp;base=<c1>">Rendered</a></span></div><p class="diff-label"><c1> Add history files → working tree</p><table class="diff unified"><colgroup><col class="ln"><col class="ln"><col></colgroup><tbody><tr><td class="ln">1</td><td class="ln">1</td><td class="same"># History</td></tr><tr><td class="ln">2</td><td class="ln">2</td><td class="same"></td></tr><tr><td class="ln">3</td><td class="ln"></td><td class="del">Line 1 <mark>was</mark> <mark>changed</mark> <mark>in</mark> <mark>version 1</mark>.</td></tr><tr><td class="ln"></td><td class="ln">3</td><td class="add">Line 1 <mark>of</mark> <mark>the</mark> <mark>history</mark> <mark>file</mark>.</td></tr><tr><td class="ln">4</td><td class="ln">4</td><td class="same">Line 2 of the history file.</td></tr><tr><td class="ln">5</td><td class="ln">5</td><td class="same">Line 3 of the history file.</td></tr><tr><td class="ln">6</td><td class="ln"></td><td class="del">Line 4 <mark>of</mark> <mark>the</mark> <mark>history</mark> <mark>file</mark>.</td></tr><tr><td class="ln"></td><td class="ln">6</td><td class="add">Line 4 <mark>was</mark> <mark>changed</mark> <mark>in</mark> <mark>version 4</mark>.</td></tr><tr><td class="ln">7</td><td class="ln">7</td><td class="same">Line 5 of the history file.</td></tr></tbody></table>
   </main>
   <button class="scm-toggle" title="Toggle source control">&#8644;</button>

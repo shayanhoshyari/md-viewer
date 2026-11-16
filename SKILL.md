@@ -18,14 +18,14 @@ ${CLAUDE_SKILL_DIR}/bin/md-viewer serve <path>
 - `<path>` is a folder, served as the root, or a file, which serves its parent folder; the printed URL opens that file. It defaults to the current directory.
 - The port is a free one picked at start; read it from the `serving <root> at http://127.0.0.1:<port>/...` line. `--port N` pins one.
 - The first run builds the skill's venv, which takes a minute; uv prints its progress.
-- Every running server is listed at the top of the sidebar; clicking one switches to it. The ⧉ beside it copies the root path.
+- Every running server is listed at the top of the sidebar; clicking one switches to it. The ⧉ beside it copies the root path; the ⧉ beside the path above the tabs copies the open file's full path.
 - To show a different file under the same root, give its URL rather than starting a second server: `http://127.0.0.1:<port>/<path relative to root>`. Headings link as `#<github-style-slug>`.
 - `${CLAUDE_SKILL_DIR}/bin/md-viewer list` prints every running server's root and URL, for finding one again after its tab is closed.
 - After changing md-viewer's own code, `${CLAUDE_SKILL_DIR}/bin/md-viewer restart` restarts every running server on the new code, each on its folder and port; open tabs need a reload.
 
 ## What it shows
 
-H2–H6 section numbers and a table of contents (`<!-- section-numbers: false -->` near the top turns numbering off), GitHub callouts, sortable tables (`<!-- default-sort: Due asc -->` above one sets how it opens), Mermaid and PlantUML fences, LaTeX math (`$x$`, `$$…$$`; `$5` stays text), and `Rendered | Diff | Source | Raw | PDF` tabs. [DESIGN.md](DESIGN.md) is the full spec.
+H2–H6 section numbers and a table of contents (`<!-- section-numbers: false -->` near the top turns numbering off), GitHub callouts, sortable tables (`<!-- default-sort: Due asc -->` above one sets how it opens), Mermaid and PlantUML fences, LaTeX math (`$x$`, `$$…$$`; `$5` stays text), and `Rendered | Edit | Diff | Source | Raw | PDF` tabs. The Edit tab is a plain textarea of the markdown source, saved with ⌘S, from this machine only. [DESIGN.md](DESIGN.md) is the full spec.
 
 The Diff tab has a source control panel on the right (changed files, then Uncommitted, Staged, Unstaged and recent commits) and takes its choices from the URL, so hand over a link to the exact view: `commit=<sha>` for what one commit changed, `base` (`auto`, `uncommitted`, `staged`, `unstaged` or a commit SHA, with `to` for a second commit), `layout=split` for side by side, and `mode=rendered` for a block-level diff of rendered markdown, e.g. `…/plan.md?view=diff&commit=a1b2c3d&mode=rendered`.
 

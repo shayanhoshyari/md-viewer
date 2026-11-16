@@ -79,6 +79,14 @@ class NoteSet(NoteDelete):
     text: str
 
 
+class FileWrite(BaseModel):
+    """`PUT /_file`: replace the file at `path`, as the page showed it, with `text`."""
+
+    path: str
+    version: str
+    text: str
+
+
 def error(status: int, message: str) -> JSONResponse:
     return JSONResponse({"error": message}, status_code=status)
 
@@ -103,14 +111,9 @@ def write_atomically(path: Path, text: str) -> None:
 
 
 def apply_note(root: Path, note: NoteDelete) -> JSONResponse:
-    try:
-        target = resolve_safe(root, note.path)
-    except HTTPException:
-        return error(404, "not found")
-    if not target.is_file():
-        return error(404, "not found")
-    if target.suffix.lower() != ".md":
-        return error(400, "notes are only for markdown files")
+    target = markdown_target(root, note.path)
+    if isinstance(target, JSONResponse):
+        return target
     data = target.read_bytes()
     if version(data) != note.version:
         return error(409, "The file changed since this page loaded. Reload to see it.")
@@ -129,6 +132,55 @@ def apply_note(root: Path, note: NoteDelete) -> JSONResponse:
         return error(400, str(exc))
     write_atomically(target, new)
     return JSONResponse({"version": version(new.encode("utf-8"))})
+
+
+def markdown_target(root: Path, rel_path: str) -> Path | JSONResponse:
+    """The existing markdown file a write names, or the error to answer with."""
+    try:
+        target = resolve_safe(root, rel_path)
+    except HTTPException:
+        return error(404, "not found")
+    if not target.is_file():
+        return error(404, "not found")
+    if target.suffix.lower() != ".md":
+        return error(400, "only markdown files can be written")
+    return target
+
+
+def apply_file(root: Path, write: FileWrite) -> JSONResponse:
+    target = markdown_target(root, write.path)
+    if isinstance(target, JSONResponse):
+        return target
+    data = target.read_bytes()
+    if version(data) != write.version:
+        return error(409, "The file changed on disk since this page loaded. Copy your text, reload and merge by hand.")
+    try:
+        old = data.decode("utf-8")
+    except UnicodeDecodeError:
+        return error(400, "the file is not UTF-8")
+    text = write.text.replace("\r\n", "\n")
+    first_end = old.find("\n")
+    if first_end > 0 and old[first_end - 1] == "\r":
+        text = text.replace("\n", "\r\n")
+    write_atomically(target, text)
+    return JSONResponse({"version": version(text.encode("utf-8"))})
+
+
+def edit_body(target: Path, rel: Path) -> str:
+    """The Edit view: a textarea with the file's source, saved by client.js."""
+    data = target.read_bytes()
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError:
+        return '<div class="markdown-body"><p>This file is not UTF-8, so it can\'t be edited here.</p></div>'
+    # The parser drops one newline right after <textarea>, so a file starting with a blank line keeps it.
+    return (
+        '<div class="edit-view"><div class="edit-bar">'
+        '<button class="edit-save" type="button" title="Save (⌘S)">Save</button>'
+        '<span class="edit-status"></span></div>'
+        f'<textarea class="edit-text" data-path="{html.escape(rel.as_posix())}" data-version="{version(data)}"'
+        f' spellcheck="false">\n{html.escape(text)}</textarea></div>'
+    )
 
 
 def exec_restart(server_id: str | None, argv: list[str]) -> None:
@@ -186,10 +238,10 @@ def create_app(root: Path, server_id: str | None = None, restart_argv: list[str]
             {"restarting": True}, status_code=202, background=BackgroundTask(exec_restart, server_id, restart_argv)
         )
 
-    async def note_request(request: Request, model: type[NoteDelete]) -> NoteDelete | JSONResponse:
-        """The request's note, or the error to answer with."""
+    async def write_request[M: BaseModel](request: Request, model: type[M]) -> M | JSONResponse:
+        """The write request's body, or the error to answer with."""
         if not same_origin(request):
-            return error(403, "notes are accepted only from this viewer's own pages")
+            return error(403, "writes are accepted only from this viewer's own pages")
         if request.headers.get("content-type", "").split(";")[0].strip() != "application/json":
             return error(415, "send JSON")
         try:
@@ -206,14 +258,20 @@ def create_app(root: Path, server_id: str | None = None, restart_argv: list[str]
     @app.put("/_notes", openapi_extra=body_schema(NoteSet))
     async def set_note_route(request: Request) -> Response:
         """Set a block's note, replacing the one it has."""
-        note = await note_request(request, NoteSet)
+        note = await write_request(request, NoteSet)
         return note if isinstance(note, JSONResponse) else apply_note(root, note)
 
     @app.delete("/_notes", openapi_extra=body_schema(NoteDelete))
     async def delete_note_route(request: Request) -> Response:
         """Remove a block's note."""
-        note = await note_request(request, NoteDelete)
+        note = await write_request(request, NoteDelete)
         return note if isinstance(note, JSONResponse) else apply_note(root, note)
+
+    @app.put("/_file", openapi_extra=body_schema(FileWrite))
+    async def write_file_route(request: Request) -> Response:
+        """Replace a markdown file's text, from the Edit view."""
+        write = await write_request(request, FileWrite)
+        return write if isinstance(write, JSONResponse) else apply_file(root, write)
 
     @app.get("/{request_path:path}", include_in_schema=False)
     def serve(request: Request, request_path: str = "", view: str = "") -> Response:
@@ -265,6 +323,9 @@ def create_app(root: Path, server_id: str | None = None, restart_argv: list[str]
                 views = view_links(rel, "pdf", markdown=True)
                 return HTMLResponse(page(root, target.name, body, rel, views), status_code=500)
             return Response(pdf, media_type="application/pdf", headers=headers)
+        if is_markdown and view == "edit":
+            views = view_links(rel, "edit", markdown=True)
+            return HTMLResponse(page(root, target.name, edit_body(target, rel), rel, views))
         if is_markdown and view != "source":
             notes_attrs = (
                 f' data-notes-path="{html.escape(rel.as_posix())}" data-notes-version="{version(target.read_bytes())}"'

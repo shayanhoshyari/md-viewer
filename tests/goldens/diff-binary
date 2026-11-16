@@ -30,7 +30,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body class="has-scm">
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>sub/</summary><ul>
 <li><a href="/sub/pair-b.md">pair-b.md</a></li>
@@ -44,7 +44,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">logo.bin<div class="views"><a href="/logo.bin?view=diff" class="active">Diff</a></div></div>
+    <div class="path">logo.bin<button class="copy-path" data-copy="<root>/logo.bin" title="Copy full path">&#10697;</button><div class="views"><a href="/logo.bin?view=diff" class="active">Diff</a></div></div>
     <p class="diff-label">Binary file: no text diff.</p>
   </main>
   <button class="scm-toggle" title="Toggle source control">&#8644;</button>

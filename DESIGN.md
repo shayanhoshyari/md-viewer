@@ -74,7 +74,7 @@ Other code imports only what `md_viewer` exports in `__all__`; every other modul
 
 ## Routes and views
 
-Every request path is relative to the root. One route serves everything except the three static files, `PUT` and `DELETE /_notes` (see [Notes](#notes)), `GET /_whoami`, `GET /_servers` and `POST /_restart` (see [Server list](#server-list)). The API is described by Swagger UI at `/_docs` and the OpenAPI schema at `/_openapi.json`, which list only the `/_notes`, `/_whoami`, `/_servers` and `/_restart` routes. FastAPI's default `/docs`, `/redoc` and `/openapi.json` are off, so those paths reach the served folder like any other.
+Every request path is relative to the root. One route serves everything except the three static files, `PUT` and `DELETE /_notes` (see [Notes](#notes)), `PUT /_file` (see [Edit](#edit)), `GET /_whoami`, `GET /_servers` and `POST /_restart` (see [Server list](#server-list)). The API is described by Swagger UI at `/_docs` and the OpenAPI schema at `/_openapi.json`, which list only the `/_notes`, `/_file`, `/_whoami`, `/_servers` and `/_restart` routes. FastAPI's default `/docs`, `/redoc` and `/openapi.json` are off, so those paths reach the served folder like any other.
 
 - `/_static/style.css`, `/_static/client.js`: package files from `static/`. `/_static/pygments.css`: the Pygments `friendly` style, scoped to `.code-block`.
 - A folder redirects to its `README.md`, else its `AGENTS.md`, else shows a listing of its entries (with `../` below the root).
@@ -84,12 +84,15 @@ Every request path is relative to the root. One route serves everything except t
   | View | Markdown | Other text |
   | --- | --- | --- |
   | (none) | rendered | source |
+  | `edit` | edit page | (source) |
   | `diff` | diff | diff |
   | `source` | source | source |
   | `raw` | `text/plain` bytes | `text/plain` bytes |
   | `pdf` | letter-size PDF | (source) |
 
-- Pages show a tab bar: `Rendered | Diff | Source | Raw | PDF` for markdown, `Source | Diff | Raw` for other text.
+- Pages show a tab bar: `Rendered | Edit | Diff | Source | Raw | PDF` for markdown, `Source | Diff | Raw` for other text.
+- Above the tab bar, the path relative to the root, with a ⧉ button that copies the file's absolute path (the folder's, on a listing) to the clipboard and shows ✓ for a moment.
+- **Edit**: the file's source in a textarea, saved with ⌘S. See [Edit](#edit).
 - **Diff**: what changed in the file, from git. See [Diff](#diff).
 - **Source**: Pygments markup with line numbers. Each line is `<span class="line" id="L-n">`; `#L-12` and `#L-10-L-20` highlight and scroll to lines. In the browser, Shiki (VS Code's grammars and `light-plus` theme) re-highlights blocks in the same shape; if the CDN is unreachable the Pygments markup stays.
 
@@ -171,10 +174,21 @@ Quick notes left in the browser for the next Claude session to act on. They live
 - **Elsewhere**: Source and Raw show notes as they are. The rendered diff shows notes as the same boxes, line notes as their own blocks and row notes inside their table, without the buttons. The PDF leaves them out. `md-viewer notes` lists them (see [md-viewer notes](#md-viewer-notes)).
 - **Writing**: `PUT /_notes` with JSON `{path, version, block, quote, text}` sets the block's note, adding it or replacing the one there; `DELETE /_notes` with `{path, version, block}` removes it. `version` is the SHA-256 of the file the page showed (the page carries it as `data-notes-version`). The server finds the line itself: a new note line goes after the block and any notes below it; a row note is appended to the row's line after one space. Deleting a row note removes it and that space. Answers are JSON: `{version}`, or `{error}` with 400 (bad request, no such block, no note to delete, not markdown, no text), 403 (origin), 404 (not under the root), 409 (the file changed since the page loaded) or 415 (not JSON).
 
+## Edit
+
+The Edit view of a markdown file is a plain textarea holding its source, for writing a file from the browser on the machine running the server. It is kept dumb: no highlighting, preview or autosave.
+
+- **Page**: the usual shell, with a status line and a **Save** button above one monospace textarea that fills the content area. The textarea carries `data-path` and `data-version`, the SHA-256 of the file it shows. A file that isn't UTF-8 shows a message instead.
+- **Saving**: ⌘S or Ctrl+S (the browser's save dialog is prevented) or **Save**. Nothing saves any other way. The status line says `Saving…`, then `Saved`, or the error. After a save the page stays in Edit with the new version, so the next save works.
+- **Unsaved text**: the status line says `Unsaved` while the text differs from what was last loaded or saved, and leaving the page asks first.
+- **Errors keep the text**: a refused save leaves the textarea as it is. A 409 says the file changed on disk since the page loaded: copy the text, reload and merge by hand.
+- Tab moves focus, as in any textarea.
+- **Writing**: `PUT /_file` with JSON `{path, version, text}` replaces the file with `text`. The browser sends `\n` line endings; the server writes the file's own (CRLF when the old file's first line ends in CRLF). The final newline is whatever `text` has. Answers are JSON: `{version}`, or `{error}` with 400 (bad request, not markdown, not UTF-8), 403 (origin), 404 (not under the root or missing), 409 (the file changed since the page loaded) or 415 (not JSON).
+
 ## Sidebar
 
 - At the top, the server list (see [Server list](#server-list)).
-- A tree of the root: folders first, then files, case-insensitive. Only `.json .md .py .toml .yaml .yml` files appear; empty folders and hidden entries (except `.gitignore` and `.claude`) are left out. `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.ruff_cache` and `.DS_Store` are hidden from the tree and from listings.
+- A tree of the root: folders first, then files, case-insensitive. Only `.json .md .py .toml .yaml .yml` files appear; empty folders and hidden entries (except `.gitignore` and `.claude`) are left out. `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.ruff_cache`, `node_modules` and `.DS_Store` are hidden from the tree and from listings.
 - The current file is highlighted and its folders opened.
 - The filter box (`/` to focus, Esc to clear) hides files whose name doesn't match, and folders with no matches, without opening or closing any. A closed folder with matches turns accent-colored and shows its count.
 - The ☰ button hides the sidebar; the choice is kept in `localStorage`.
@@ -205,6 +219,8 @@ The server itself never fetches anything except, for the PDF view, PlantUML SVGs
 
 - It binds `127.0.0.1` by default.
 - Every request path is resolved, symlinks included, and must stay under the root; anything else is a 404.
-- The one write is `PUT` or `DELETE /_notes`, to a `.md` file under the root. The server builds the new text and refuses unless removing every note from the old and the new text (a note line whole; a row note with the one space before it) leaves them identical, so nothing but notes can change. It also refuses unless the file still has the version the page showed. It writes a temp file in the same folder and renames it over the original, keeping its mode, line endings and final newline.
-- Writes are accepted only when `Host` is a loopback name (`127.0.0.1`, `localhost`, `[::1]`, so a rebound DNS name fails), `Origin` is that same `http://host:port`, and the body is `application/json`, which a page on another site can't send without a CORS preflight that the server never grants. Notes therefore work only from the machine running the server.
+- There are two writes, both to an existing `.md` file under the root, and both refused unless the file still has the version the page showed. Each writes a temp file in the same folder and renames it over the original, keeping its mode.
+  - `PUT` or `DELETE /_notes` changes only notes: the server builds the new text and refuses unless removing every note from the old and the new text (a note line whole; a row note with the one space before it) leaves them identical. Line endings and the final newline are kept.
+  - `PUT /_file` ([Edit](#edit)) writes any text the page sends.
+- Writes are accepted only when `Host` is a loopback name (`127.0.0.1`, `localhost`, `[::1]`, so a rebound DNS name fails), `Origin` is that same `http://host:port`, and the body is `application/json`, which a page on another site can't send without a CORS preflight that the server never grants. Notes and Edit therefore work only from the machine running the server.
 - Query values reach git only as commit SHAs that match `^[0-9a-f]{7,40}$` and that `git rev-parse --verify` accepts.

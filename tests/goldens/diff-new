@@ -30,7 +30,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body class="has-scm">
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>docs/</summary><ul>
 <li><a href="/docs/README.md">README.md</a></li>
@@ -48,7 +48,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">new.md<div class="views"><a href="/new.md">Rendered</a><a href="/new.md?view=diff" class="active">Diff</a><a href="/new.md?view=source">Source</a><a href="/new.md?view=raw">Raw</a><a href="/new.md?view=pdf">PDF</a></div></div>
+    <div class="path">new.md<button class="copy-path" data-copy="<root>/new.md" title="Copy full path">&#10697;</button><div class="views"><a href="/new.md">Rendered</a><a href="/new.md?view=edit">Edit</a><a href="/new.md?view=diff" class="active">Diff</a><a href="/new.md?view=source">Source</a><a href="/new.md?view=raw">Raw</a><a href="/new.md?view=pdf">PDF</a></div></div>
     <div class="diff-controls"><span class="toggle"><a href="?view=diff" class="active">Unified</a><a href="?view=diff&amp;layout=split">Split</a></span><span class="toggle"><a href="?view=diff&amp;mode=text">Text</a><a href="?view=diff" class="active">Rendered</a></span></div><p class="diff-label">New file, never committed</p><div class="bdiff unified"><div class="brow"><div class="bcell add markdown-body"><h1 id="new">New</h1>
 </div></div><div class="brow"><div class="bcell add markdown-body"><p>Never committed.</p>
 </div></div></div>

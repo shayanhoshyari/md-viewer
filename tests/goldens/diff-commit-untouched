@@ -30,7 +30,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body class="has-scm">
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>sub/</summary><ul>
 <li><a href="/sub/pair-b.md">pair-b.md</a></li>
@@ -44,7 +44,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">history.md<div class="views"><a href="/history.md">Rendered</a><a href="/history.md?view=diff" class="active">Diff</a><a href="/history.md?view=source">Source</a><a href="/history.md?view=raw">Raw</a><a href="/history.md?view=pdf">PDF</a></div></div>
+    <div class="path">history.md<button class="copy-path" data-copy="<root>/history.md" title="Copy full path">&#10697;</button><div class="views"><a href="/history.md">Rendered</a><a href="/history.md?view=edit">Edit</a><a href="/history.md?view=diff" class="active">Diff</a><a href="/history.md?view=source">Source</a><a href="/history.md?view=raw">Raw</a><a href="/history.md?view=pdf">PDF</a></div></div>
     <div class="diff-controls"><span class="toggle"><a href="?view=diff&amp;commit=<c5>" class="active">Unified</a><a href="?view=diff&amp;layout=split&amp;commit=<c5>">Split</a></span><span class="toggle"><a href="?view=diff&amp;mode=text&amp;commit=<c5>">Text</a><a href="?view=diff&amp;commit=<c5>" class="active">Rendered</a></span></div><p class="diff-label">Commit <c5> Edit both pair files</p><p class="diff-label">This file has no changes here. Pick a changed file in the panel on the right.</p>
   </main>
   <button class="scm-toggle" title="Toggle source control">&#8644;</button>

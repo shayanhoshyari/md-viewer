@@ -30,7 +30,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body class="has-scm">
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>docs/</summary><ul>
 <li><a href="/docs/README.md">README.md</a></li>
@@ -48,7 +48,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">code.py<div class="views"><a href="/code.py">Source</a><a href="/code.py?view=diff" class="active">Diff</a><a href="/code.py?view=raw">Raw</a></div></div>
+    <div class="path">code.py<button class="copy-path" data-copy="<root>/code.py" title="Copy full path">&#10697;</button><div class="views"><a href="/code.py">Source</a><a href="/code.py?view=diff" class="active">Diff</a><a href="/code.py?view=raw">Raw</a></div></div>
     <div class="diff-controls"><span class="toggle"><a href="?view=diff" class="active">Unified</a><a href="?view=diff&amp;layout=split">Split</a></span></div><p class="diff-label">No uncommitted changes. Last commit: <sha> Add fixture</p><table class="diff unified"><colgroup><col class="ln"><col class="ln"><col></colgroup><tbody><tr><td class="ln"></td><td class="ln">1</td><td class="add">&quot;&quot;&quot;A small module.&quot;&quot;&quot;</td></tr><tr><td class="ln"></td><td class="ln">2</td><td class="add"></td></tr><tr><td class="ln"></td><td class="ln">3</td><td class="add"></td></tr><tr><td class="ln"></td><td class="ln">4</td><td class="add">def add(a: int, b: int) -&gt; int:</td></tr><tr><td class="ln"></td><td class="ln">5</td><td class="add">    return a + b</td></tr></tbody></table>
   </main>
   <button class="scm-toggle" title="Toggle source control">&#8644;</button>

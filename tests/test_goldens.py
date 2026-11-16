@@ -21,6 +21,7 @@ UPDATE = bool(os.environ.get("MD_VIEWER_UPDATE_GOLDENS"))
 CASES = [
     ("rendered", "repo", "/doc.md"),
     ("rendered-nonum", "repo", "/nonum.md"),
+    ("edit-md", "repo", "/doc.md?view=edit"),
     ("source-md", "repo", "/doc.md?view=source"),
     ("source-py", "repo", "/code.py"),
     ("source-makefile", "repo", "/Makefile"),

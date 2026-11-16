@@ -224,18 +224,17 @@ document.querySelectorAll('.content table').forEach(function (table) {
   });
 })();
 
-// The ⧉ button beside the sidebar header copies the root path, e.g. to start claude there.
-(function () {
-  var button = document.querySelector('.copy-root');
-  if (!button) return;
+// The ⧉ buttons copy a path: the root beside the sidebar header (e.g. to start claude there), the
+// open file's absolute path beside the path line.
+document.querySelectorAll('button[data-copy]').forEach(function (button) {
   var label = button.textContent;
   button.addEventListener('click', function () {
-    navigator.clipboard.writeText(button.dataset.root).then(function () {
+    navigator.clipboard.writeText(button.dataset.copy).then(function () {
       button.textContent = '\u2713';
       setTimeout(function () { button.textContent = label; }, 1200);
     }).catch(function (err) { console.warn('copy failed:', err); });
   });
-})();
+});
 
 // The source control panel beside the diff hides like the sidebar, remembered per browser.
 var scmToggle = document.querySelector('.scm-toggle');
@@ -433,5 +432,62 @@ if (scmToggle) {
       });
     });
     del.addEventListener('click', function () { send('DELETE', { block: block }); });
+  });
+})();
+
+// Edit view: a textarea with the file's source, saved by ⌘S / Ctrl+S or the Save button only.
+(function () {
+  var area = document.querySelector('textarea.edit-text');
+  if (!area) return;
+  var save = document.querySelector('.edit-save');
+  var status = document.querySelector('.edit-status');
+  var fileVersion = area.dataset.version;
+  var saved = area.value;
+  var saving = false;
+
+  function show(message, isError) {
+    status.textContent = message;
+    status.classList.toggle('error', !!isError);
+  }
+
+  function refresh() {
+    if (!saving) show(area.value === saved ? '' : 'Unsaved');
+  }
+
+  function submit() {
+    if (saving) return;
+    var text = area.value;
+    saving = true;
+    save.disabled = true;
+    show('Saving…');
+    fetch('/_file', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: area.dataset.path, version: fileVersion, text: text }),
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) {
+        if (!r.ok) throw new Error(data.error || ('Error ' + r.status));
+        fileVersion = data.version;
+        saved = text;
+      });
+    }).then(function () {
+      saving = false;
+      show(area.value === saved ? 'Saved' : 'Unsaved');
+    }, function (err) {
+      saving = false;
+      show(err.message || String(err), true);
+    }).then(function () { save.disabled = false; });
+  }
+
+  area.addEventListener('input', refresh);
+  save.addEventListener('click', submit);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 's' && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    }
+  });
+  window.addEventListener('beforeunload', function (e) {
+    if (area.value !== saved) { e.preventDefault(); e.returnValue = ''; }
   });
 })();

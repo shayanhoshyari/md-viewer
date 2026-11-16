@@ -172,6 +172,10 @@ html.scm-hidden .scm { display: none; }
   padding: 0 0.2rem; position: absolute; right: 0; top: 0;
 }
 .copy-root:hover { color: var(--accent); }
+.copy-path {
+  background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 13px; margin-left: 4px; padding: 0 0.2rem;
+}
+.copy-path:hover { color: var(--accent); }
 .servers > summary {
   font-size: 0.95rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   line-height: 1.6;
@@ -381,6 +385,23 @@ html.scm-hidden .scm { display: none; }
 .note-hint { color: var(--muted); font-size: 12px; }
 .note-error, .note-flash { color: #cf222e; font-size: 12px; }
 .note-flash { margin: 0.4rem 0; }
+
+/* Edit */
+.edit-bar { align-items: center; display: flex; gap: 0.6rem; margin-bottom: 0.5rem; }
+.edit-save {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--fg);
+  cursor: pointer; font: inherit; font-size: 13px; padding: 2px 12px;
+}
+.edit-save:hover { border-color: var(--accent); color: var(--accent); }
+.edit-save:disabled { cursor: default; opacity: 0.6; }
+.edit-status { color: var(--muted); font-size: 13px; }
+.edit-status.error { color: #cf222e; }
+.edit-text {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; color: var(--fg);
+  font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; height: calc(100vh - 11rem); min-height: 12rem;
+  padding: 0.6rem 0.8rem; resize: vertical; tab-size: 4; width: 100%;
+}
+.edit-text:focus { border-color: var(--accent); outline: none; }
 </style>
   <style>
 @page {

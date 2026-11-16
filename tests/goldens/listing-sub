@@ -29,7 +29,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body>
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>docs/</summary><ul>
 <li><a href="/docs/README.md">README.md</a></li>
@@ -47,7 +47,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">notes</div>
+    <div class="path">notes<button class="copy-path" data-copy="<root>/notes" title="Copy full path">&#10697;</button></div>
     <h1>Directory</h1><ul><li><a href="../">../</a></li>
 <li><a href="data.json">data.json</a></li>
 <li><a href="plain.txt">plain.txt</a></li></ul>

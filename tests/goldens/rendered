@@ -29,7 +29,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body>
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>docs/</summary><ul>
 <li><a href="/docs/README.md">README.md</a></li>
@@ -47,7 +47,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">doc.md<div class="views"><a href="/doc.md" class="active">Rendered</a><a href="/doc.md?view=diff">Diff</a><a href="/doc.md?view=source">Source</a><a href="/doc.md?view=raw">Raw</a><a href="/doc.md?view=pdf">PDF</a></div></div>
+    <div class="path">doc.md<button class="copy-path" data-copy="<root>/doc.md" title="Copy full path">&#10697;</button><div class="views"><a href="/doc.md" class="active">Rendered</a><a href="/doc.md?view=edit">Edit</a><a href="/doc.md?view=diff">Diff</a><a href="/doc.md?view=source">Source</a><a href="/doc.md?view=raw">Raw</a><a href="/doc.md?view=pdf">PDF</a></div></div>
     <div class="markdown-body" data-notes-path="doc.md" data-notes-version="87af09e887b50f48bdf89af7b433efb3d90a7abafd7b81d750fb915de588d74d"><h1 id="every-feature" data-block="0">Every feature</h1>
 <nav class="toc"><details open><summary>Contents</summary><ul><li class="toc-d2"><a href="#setup">1. Setup</a></li><li class="toc-d3"><a href="#details">1.1. Details</a></li><li class="toc-d2"><a href="#callouts">2. Callouts</a></li><li class="toc-d2"><a href="#tables">3. Tables</a></li><li class="toc-d2"><a href="#diagrams">4. Diagrams</a></li><li class="toc-d2"><a href="#code">5. Code</a></li><li class="toc-d2"><a href="#math">6. Math</a></li></ul></details></nav>
 <p data-block="1">Intro paragraph with a footnote<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> and a link to https://example.com.</p>

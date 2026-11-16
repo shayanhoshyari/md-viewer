@@ -29,7 +29,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body>
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>docs/</summary><ul>
 <li><a href="/docs/README.md">README.md</a></li>
@@ -47,7 +47,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">Makefile<div class="views"><a href="/Makefile" class="active">Source</a><a href="/Makefile?view=diff">Diff</a><a href="/Makefile?view=raw">Raw</a></div></div>
+    <div class="path">Makefile<button class="copy-path" data-copy="<root>/Makefile" title="Copy full path">&#10697;</button><div class="views"><a href="/Makefile" class="active">Source</a><a href="/Makefile?view=diff">Diff</a><a href="/Makefile?view=raw">Raw</a></div></div>
     <div class="code-block with-linenos" data-lang="make"><pre><code><span class="line" id="L-1"><span class="nf">all</span><span class="o">:</span><span class="w"> </span><span class="n">build</span></span><span class="line" id="L-2"></span><span class="line" id="L-3"><span class="nf">build</span><span class="o">:</span></span><span class="line" id="L-4"><span class="w">	</span><span class="nb">echo</span><span class="w"> </span>hi</span></code></pre></div>
   </main>
   <script type="module" src="/_static/client.js"></script>

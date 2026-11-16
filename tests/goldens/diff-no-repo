@@ -29,13 +29,13 @@ content-type: text/html; charset=utf-8
 </head>
 <body>
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">loose0</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">loose0</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li><a href="/alone.md">alone.md</a></li></ul>
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">alone.md<div class="views"><a href="/alone.md">Rendered</a><a href="/alone.md?view=diff" class="active">Diff</a><a href="/alone.md?view=source">Source</a><a href="/alone.md?view=raw">Raw</a><a href="/alone.md?view=pdf">PDF</a></div></div>
+    <div class="path">alone.md<button class="copy-path" data-copy="<root>/alone.md" title="Copy full path">&#10697;</button><div class="views"><a href="/alone.md">Rendered</a><a href="/alone.md?view=edit">Edit</a><a href="/alone.md?view=diff" class="active">Diff</a><a href="/alone.md?view=source">Source</a><a href="/alone.md?view=raw">Raw</a><a href="/alone.md?view=pdf">PDF</a></div></div>
     <p class="diff-label">Not in a git repository.</p>
   </main>
   <script type="module" src="/_static/client.js"></script>

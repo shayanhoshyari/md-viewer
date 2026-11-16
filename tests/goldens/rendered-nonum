@@ -29,7 +29,7 @@ content-type: text/html; charset=utf-8
 </head>
 <body>
   <aside class="sidebar">
-    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-root="<root>" title="Copy folder path">&#10697;</button></div>
+    <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>docs/</summary><ul>
 <li><a href="/docs/README.md">README.md</a></li>
@@ -47,7 +47,7 @@ content-type: text/html; charset=utf-8
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">nonum.md<div class="views"><a href="/nonum.md" class="active">Rendered</a><a href="/nonum.md?view=diff">Diff</a><a href="/nonum.md?view=source">Source</a><a href="/nonum.md?view=raw">Raw</a><a href="/nonum.md?view=pdf">PDF</a></div></div>
+    <div class="path">nonum.md<button class="copy-path" data-copy="<root>/nonum.md" title="Copy full path">&#10697;</button><div class="views"><a href="/nonum.md" class="active">Rendered</a><a href="/nonum.md?view=edit">Edit</a><a href="/nonum.md?view=diff">Diff</a><a href="/nonum.md?view=source">Source</a><a href="/nonum.md?view=raw">Raw</a><a href="/nonum.md?view=pdf">PDF</a></div></div>
     <div class="markdown-body" data-notes-path="nonum.md" data-notes-version="930d456092bbc3797c15369011850b60478d13517067b69f461c187d257bed1b"><h1 id="no-numbers" data-block="0">No numbers</h1>
 <nav class="toc"><details open><summary>Contents</summary><ul><li class="toc-d2"><a href="#first">First</a></li><li class="toc-d2"><a href="#second">Second</a></li></ul></details></nav>
 <div class="md-block" data-block="1">

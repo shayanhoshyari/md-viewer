@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.18.0 - 2026-11-16
+
+- A ⧉ button beside the path above the tab bar copies the open file's absolute path (a folder's, on a listing).
+
+## 0.17.0 - 2026-11-14
+
+- An Edit tab on markdown files: the source in a plain textarea, saved with ⌘S or Ctrl+S (or the Save button) through `PUT /_file`, from this machine only. A save is refused if the file changed on disk since the page loaded, and the text stays in the page.
+
+## 0.16.1 - 2026-11-14
+
+- `node_modules` folders are hidden from the file tree and listings.
+
 ## 0.16.0 - 2026-11-14
 
 - A markdown diff opens in Rendered mode; `?mode=text` (or the Text toggle) shows the line diff.

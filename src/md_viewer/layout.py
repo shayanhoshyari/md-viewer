@@ -22,7 +22,7 @@ CLIENT_JS = static_text("client.js")
 KATEX_VERSION = "0.16.22"
 TREE_FILE_EXTS = {".json", ".md", ".py", ".toml", ".yaml", ".yml"}
 # Names hidden from the file tree and directory listings.
-EXCLUDE = {".DS_Store", ".git", ".pytest_cache", ".ruff_cache", ".venv", "__pycache__"}
+EXCLUDE = {".DS_Store", ".git", ".pytest_cache", ".ruff_cache", ".venv", "__pycache__", "node_modules"}
 
 
 def resolve_safe(root: Path, request_path: str) -> Path:
@@ -72,7 +72,8 @@ def view_links(rel: Path, current: str, *, markdown: bool, source: bool = True, 
     source_tab = ("source", "Source", href + "?view=source" if markdown else href)
     raw_tab = ("raw", "Raw", href + "?view=raw")
     if markdown:
-        options = [("rendered", "Rendered", href), diff, source_tab, raw_tab, ("pdf", "PDF", href + "?view=pdf")]
+        edit = ("edit", "Edit", href + "?view=edit")
+        options = [("rendered", "Rendered", href), edit, diff, source_tab, raw_tab, ("pdf", "PDF", href + "?view=pdf")]
     elif not source:
         options = [diff, raw_tab] if raw else [diff]
     else:
@@ -100,7 +101,7 @@ def servers_html(root: Path) -> str:
         '<div class="servers-head">'
         f'<details class="servers"><summary title="{html.escape(short_path(root))}">{name}</summary>'
         '<ul class="server-list"><li class="server-note">Looking…</li></ul></details>'
-        f'<button class="copy-root" data-root="{html.escape(str(root))}" title="Copy folder path">&#10697;</button>'
+        f'<button class="copy-root" data-copy="{html.escape(str(root))}" title="Copy folder path">&#10697;</button>'
         "</div>"
     )
 
@@ -115,6 +116,9 @@ def page(root: Path, title: str, body: str, rel: Path, views: str = "", panel: s
             '\n    try { if (localStorage.getItem("scmHidden")) '
             'document.documentElement.classList.add("scm-hidden"); } catch (e) {}'
         )
+    copy_path = (
+        f'<button class="copy-path" data-copy="{html.escape(str(root / rel))}" title="Copy full path">&#10697;</button>'
+    )
     return f"""<!doctype html>
 <html>
 <head>
@@ -149,7 +153,7 @@ def page(root: Path, title: str, body: str, rel: Path, views: str = "", panel: s
   </aside>
   <main class="content">
     <button class="nav-toggle" title="Toggle sidebar">&#9776;</button>
-    <div class="path">{html.escape(rel.as_posix())}{views}</div>
+    <div class="path">{html.escape(rel.as_posix())}{copy_path}{views}</div>
     {body}
   </main>{scm_html}
   <script type="module" src="/_static/client.js"></script>
