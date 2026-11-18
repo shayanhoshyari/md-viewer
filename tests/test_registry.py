@@ -186,13 +186,13 @@ def test_restart_waits_for_a_new_id(state: Path, stubs: list[ThreadingHTTPServer
     threading.Thread(target=server.serve_forever, daemon=True).start()
     stubs.append(server)
     port = server.server_address[1]
-    assert registry.restart(registry.Server(id="old", port=port, root="/a")) is None
+    assert registry.restart(registry.Server(id="old", port=port, root="/a", pid=1)) is None
 
 
 def test_restart_reports_a_server_that_cannot(stubs: list[ThreadingHTTPServer]) -> None:
     stubs.append(stub("old"))  # answers GET only: POST gets 501
     port = stubs[0].server_address[1]
-    assert registry.restart(registry.Server(id="old", port=port, root="/a")) == "/_restart answered 501"
+    assert registry.restart(registry.Server(id="old", port=port, root="/a", pid=1)) == "/_restart answered 501"
 
 
 def test_restart_end_to_end(state: Path, tmp_path: Path) -> None:

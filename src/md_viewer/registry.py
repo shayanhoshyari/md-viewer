@@ -32,6 +32,7 @@ class Server:
     id: str
     port: int
     root: str
+    pid: int
 
     @property
     def url(self) -> str:
@@ -117,7 +118,7 @@ def restart(server: Server) -> str | None:
 def read_entry(path: Path) -> Server | None:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        return Server(id=str(data["id"]), port=int(data["port"]), root=str(data["root"]))
+        return Server(id=str(data["id"]), port=int(data["port"]), root=str(data["root"]), pid=int(data["pid"]))
     except (OSError, ValueError, KeyError, TypeError):
         return None
 

@@ -15,6 +15,9 @@ from urllib.parse import quote
 
 import uvicorn
 from fastapi import FastAPI
+from rich import box
+from rich.console import Console
+from rich.table import Table
 
 from md_viewer.app import create_app
 from md_viewer.layout import EXCLUDE, short_path
@@ -159,9 +162,19 @@ def notes_report(files: list[Path]) -> str:
 
 
 def list_servers() -> int:
-    """`md-viewer list`: one line per running server."""
-    for server in live_servers(None):
-        print(f"{short_path(Path(server.root))}  {server.url}")
+    """`md-viewer list`: a table of the running servers, one row each."""
+    servers = live_servers(None)
+    if not servers:
+        return 0
+    rows = [(short_path(Path(s.root)), str(s.port), str(s.pid), s.url) for s in servers]
+    table = Table(box=box.SIMPLE_HEAD)
+    table.add_column("Path", overflow="fold")  # the only column that gives up width on a narrow terminal
+    for index, name in enumerate(("Port", "PID", "URL"), start=1):
+        widest = max(len(name), *(len(row[index]) for row in rows))
+        table.add_column(name, justify="left" if name == "URL" else "right", no_wrap=True, min_width=widest)
+    for row in rows:
+        table.add_row(*row)
+    Console().print(table)
     return 0
 
 

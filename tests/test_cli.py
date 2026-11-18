@@ -132,7 +132,7 @@ def test_restart_reuses_the_target_and_bound_port(tmp_path: Path) -> None:
 def test_restart_command_reports_each_server(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    servers = [Server(id="a", port=1, root="/a"), Server(id="b", port=2, root="/b")]
+    servers = [Server(id="a", port=1, root="/a", pid=11), Server(id="b", port=2, root="/b", pid=12)]
     monkeypatch.setattr("md_viewer.cli.live_servers", lambda _: servers)
     monkeypatch.setattr("md_viewer.cli.restart", lambda s: None if s.id == "a" else "no answer within 15 s")
     assert main(["restart"]) == 1
@@ -145,11 +145,19 @@ def test_restart_command_without_servers(monkeypatch: pytest.MonkeyPatch, capsys
     assert capsys.readouterr().out == ""
 
 
-def test_list_command_prints_each_server(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    servers = [Server(id="a", port=1, root="/a"), Server(id="b", port=2, root=str(Path.home() / "notes"))]
+def test_list_command_prints_a_table(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    servers = [
+        Server(id="a", port=1, root="/a", pid=4321),
+        Server(id="b", port=8000, root=str(Path.home() / "notes"), pid=99),
+    ]
     monkeypatch.setattr("md_viewer.cli.live_servers", lambda _: servers)
     assert main(["list"]) == 0
-    assert capsys.readouterr().out == "/a  http://127.0.0.1:1/\n~/notes  http://127.0.0.1:2/\n"
+    rows = [line.split() for line in capsys.readouterr().out.splitlines() if line.strip() and "─" not in line]
+    assert rows == [
+        ["Path", "Port", "PID", "URL"],
+        ["/a", "1", "4321", "http://127.0.0.1:1/"],
+        ["~/notes", "8000", "99", "http://127.0.0.1:8000/"],
+    ]
 
 
 def test_list_command_without_servers(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:

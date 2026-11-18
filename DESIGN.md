@@ -53,7 +53,7 @@ Lists relative links and images that point at a missing file or heading, in a ma
 
 ### md-viewer list
 
-Lists every running server, for finding one again after its tab is closed. It reads the [registry](#server-list) like any reader, pruning dead entries, and prints one line per server, sorted by root, `~/notes  http://127.0.0.1:8000/`. No servers prints nothing. It exits 0.
+Lists every running server, for finding one again after its tab is closed. It reads the [registry](#server-list) like any reader, pruning dead entries, and prints a table (with `rich`) of one row per server, sorted by root: its path (`~/notes`), port, process ID and URL. No servers prints nothing. It exits 0.
 
 ### md-viewer restart
 

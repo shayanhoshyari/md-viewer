@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.0 - 2026-11-17
+
+- `md-viewer list` prints a table of the running servers: path, port, process ID and URL.
+
 ## 0.18.0 - 2026-11-16
 
 - A ⧉ button beside the path above the tab bar copies the open file's absolute path (a folder's, on a listing).
