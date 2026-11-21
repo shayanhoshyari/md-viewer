@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import socket
 import sys
 from collections.abc import AsyncGenerator
@@ -13,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import quote
 
+import ignore
 import uvicorn
 from fastapi import FastAPI
 from rich import box
@@ -20,7 +20,8 @@ from rich.console import Console
 from rich.table import Table
 
 from md_viewer.app import create_app
-from md_viewer.layout import EXCLUDE, short_path
+from md_viewer.constants import KEPT_DOT_FOLDERS
+from md_viewer.layout import short_path
 from md_viewer.links import check_links
 from md_viewer.markdown import find_notes
 from md_viewer.registry import live_servers, register, restart, unregister
@@ -102,11 +103,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def markdown_files(folder: Path) -> list[Path]:
-    """Every .md file under `folder`, skipping what the file tree skips."""
+    """Every .md file under `folder`, skipping what ripgrep skips and dot folders not in `KEPT_DOT_FOLDERS`."""
     found: list[Path] = []
-    for dirpath, dirnames, filenames in os.walk(folder):
-        dirnames[:] = sorted(d for d in dirnames if d not in EXCLUDE and (not d.startswith(".") or d == ".claude"))
-        found.extend(Path(dirpath) / name for name in filenames if name.lower().endswith(".md"))
+    for entry in ignore.WalkBuilder(folder).hidden(False).build():
+        path = entry.path()
+        hidden_folder = any(
+            p.startswith(".") and p not in KEPT_DOT_FOLDERS for p in path.relative_to(folder).parts[:-1]
+        )
+        if path.name.lower().endswith(".md") and path.is_file() and not hidden_folder:
+            found.append(path)
     return sorted(found)
 
 

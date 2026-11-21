@@ -11,7 +11,7 @@ from md_viewer.app import create_app
 from md_viewer.diff import BadDiffParam, DiffRequest
 from md_viewer.diff_blocks import block_rows, cut_blocks, mark_words, render_blocks
 from md_viewer.diff_text import intraline, unified_table
-from md_viewer.layout import resolve_safe
+from md_viewer.layout import resolve_safe, tree_html
 from md_viewer.markdown import MD, github_slug, parse_markdown, section_numbers_enabled
 from md_viewer.scm import Change, Scope, file_tree, parse_name_status, tree_items
 
@@ -86,6 +86,15 @@ def test_resolve_safe(tmp_path: Path) -> None:
     for escape in ("..", "../x.md", "a/../../x.md"):
         with pytest.raises(HTTPException):
             resolve_safe(root, escape)
+
+
+def test_tree_shows_kept_dot_entries_only(tmp_path: Path) -> None:
+    for rel in [".claude/a.md", ".agents/b.md", ".hidden/c.md", ".gitignore", "d.md"]:
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text("x\n")
+    tree = tree_html(tmp_path)
+    assert ".claude" in tree and ".agents" in tree and "d.md" in tree
+    assert ".hidden" not in tree
 
 
 def test_intraline_marks_changed_words() -> None:

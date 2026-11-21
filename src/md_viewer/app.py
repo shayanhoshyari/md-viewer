@@ -19,6 +19,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Resp
 from pydantic import BaseModel, ValidationError
 from starlette.background import BackgroundTask
 
+from md_viewer.constants import BINARY_EXTS, SOURCE_EXTS
 from md_viewer.diff import render_diff
 from md_viewer.highlight import PYGMENTS_FORMATTER, render_source
 from md_viewer.layout import CLIENT_JS, STYLE, directory_listing, page, resolve_safe, short_path, view_links
@@ -27,24 +28,6 @@ from md_viewer.notes import NoteError, delete_note, set_note, version
 from md_viewer.pdf import PDF_SETUP_HINT, render_pdf
 from md_viewer.registry import live_servers, unregister
 from md_viewer.scm import source_control_panel
-
-BINARY_EXTS = {".gif", ".ico", ".jpeg", ".jpg", ".pdf", ".png", ".svg", ".webp"}
-SOURCE_EXTS = {
-    ".css",
-    ".html",
-    ".ini",
-    ".js",
-    ".json",
-    ".md",
-    ".py",
-    ".pyi",
-    ".sh",
-    ".sql",
-    ".toml",
-    ".ts",
-    ".yaml",
-    ".yml",
-}
 
 
 def looks_like_text(path: Path) -> bool:

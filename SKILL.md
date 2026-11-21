@@ -41,6 +41,6 @@ When asked to check, handle or address the notes:
 
 ## Links
 
-When asked to check links in markdown, or after edits where a folder's instructions ask for it, run `${CLAUDE_SKILL_DIR}/bin/md-viewer links <file or folder>`. It prints `path:line: missing file: …` or `missing anchor: …` for each relative link or image that points at a missing file or heading, using the same heading anchors the viewer renders, and nothing when all is well. Fix each one: correct the path or anchor, or drop the link. External URLs aren't checked.
+When asked to check links in markdown, or after edits where a folder's instructions ask for it, run `${CLAUDE_SKILL_DIR}/bin/md-viewer links <file or folder>`. It prints `path:line: missing file: …` or `missing anchor: …` for each relative link or image that points at a missing file or heading, using the same heading anchors the viewer renders, and nothing when all is well. Fix each one: correct the path or anchor, or drop the link. External URLs aren't checked. On a folder it skips what `.ignore` and `.gitignore` files hide, as ripgrep does.
 
 The PDF tab needs `brew install pango`; without it that tab shows the hint and everything else works.

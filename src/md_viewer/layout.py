@@ -9,6 +9,7 @@ from urllib.parse import quote
 
 from fastapi import HTTPException
 
+from md_viewer.constants import EXCLUDE, KEPT_DOT_FOLDERS, TREE_FILE_EXTS
 from md_viewer.highlight import SHIKI_THEME, SHIKI_VERSION
 
 
@@ -20,9 +21,6 @@ def static_text(name: str) -> str:
 STYLE = static_text("style.css")
 CLIENT_JS = static_text("client.js")
 KATEX_VERSION = "0.16.22"
-TREE_FILE_EXTS = {".json", ".md", ".py", ".toml", ".yaml", ".yml"}
-# Names hidden from the file tree and directory listings.
-EXCLUDE = {".DS_Store", ".git", ".pytest_cache", ".ruff_cache", ".venv", "__pycache__", "node_modules"}
 
 
 def resolve_safe(root: Path, request_path: str) -> Path:
@@ -42,7 +40,7 @@ def tree_html(root: Path) -> str:
         for child in children:
             if child.name in EXCLUDE:
                 continue
-            if child.name.startswith(".") and child.name not in {".gitignore", ".claude"}:
+            if child.name.startswith(".") and child.name not in KEPT_DOT_FOLDERS:
                 continue
             if child.is_dir():
                 inner = walk(child)

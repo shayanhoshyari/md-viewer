@@ -30,7 +30,7 @@ md-viewer restart
 
 ### md-viewer notes
 
-Lists the [notes](#notes) in a markdown file, or in every `.md` file under a folder (skipping what the file tree skips), so an agent handling them reads only the notes and the blocks they're on. `PATH` defaults to the current directory. For each note it prints the file and line, the kind of block the note is on and its lines, that block's source (at most 15 lines), the quote if any, and the text:
+Lists the [notes](#notes) in a markdown file, or in every `.md` file under a folder (skipping dot folders other than `.claude` and `.agents`, and [what ripgrep skips](#ignore-files)), so an agent handling them reads only the notes and the blocks they're on. `PATH` defaults to the current directory. For each note it prints the file and line, the kind of block the note is on and its lines, that block's source (at most 15 lines), the quote if any, and the text:
 
 ```text
 plans/next.md:19  paragraph, lines 15-18
@@ -44,12 +44,16 @@ Notes are separated by a blank line. A note above every block shows `top of file
 
 ### md-viewer links
 
-Lists relative links and images that point at a missing file or heading, in a markdown file or every `.md` file under a folder (skipping what the file tree skips). `PATH` defaults to the current directory.
+Lists relative links and images that point at a missing file or heading, in a markdown file or every `.md` file under a folder (skipping dot folders other than `.claude` and `.agents`, and [what ripgrep skips](#ignore-files)). `PATH` defaults to the current directory.
 
 - A link's target, relative to its file, must exist; a folder counts. A `#anchor` into a `.md` file, or alone for the same file, must be the id of one of its headings as the viewer renders them (GitHub-style slugs, from the same parser). Anchors into other files aren't checked.
 - Links with a scheme or host (`https:`, `mailto:`) aren't checked, so the command is offline. Links in code are not links.
 - It prints one line per problem, `doc.md:12: missing file: other.md` or `doc.md:14: missing anchor: other.md#setup`, with the line the link is on and paths relative to the current directory, and exits 1 if there were any. No problems prints nothing.
 - The checker is part of the [public API](#public-api), so a folder's own checker can depend on the package and add its rules on top of `links_of` and `link_problem`.
+
+#### Ignore files
+
+When `PATH` is a folder, `notes` and `links` skip what ripgrep skips with its default settings, using the same Rust `ignore` crate (through `ignore-python`): `.ignore` files, `.gitignore` files inside a git repository, `.git/info/exclude` and the global git excludes file, read from `PATH`, its subfolders and the folders above it. md-viewer has no matching rules of its own. Unlike ripgrep's default, hidden files are not skipped and `.claude` and `.agents` are walked; other dot folders are not. There is no other skip list, so a `node_modules` or `.venv` is skipped through an ignore file (or for being hidden). A `PATH` that is a single file is checked even if an ignore file matches it. The file tree and listings of `md-viewer serve` don't read ignore files.
 
 ### md-viewer list
 
@@ -188,7 +192,7 @@ The Edit view of a markdown file is a plain textarea holding its source, for wri
 ## Sidebar
 
 - At the top, the server list (see [Server list](#server-list)).
-- A tree of the root: folders first, then files, case-insensitive. Only `.json .md .py .toml .yaml .yml` files appear; empty folders and hidden entries (except `.gitignore` and `.claude`) are left out. `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.ruff_cache`, `node_modules` and `.DS_Store` are hidden from the tree and from listings.
+- A tree of the root: folders first, then files, case-insensitive. Only `.json .md .py .toml .yaml .yml` files appear; empty folders and hidden entries (except the `.claude` and `.agents` folders) are left out. `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.ruff_cache`, `node_modules` and `.DS_Store` are hidden from the tree and from listings.
 - The current file is highlighted and its folders opened.
 - The filter box (`/` to focus, Esc to clear) hides files whose name doesn't match, and folders with no matches, without opening or closing any. A closed folder with matches turns accent-colored and shows its count.
 - The ☰ button hides the sidebar; the choice is kept in `localStorage`.

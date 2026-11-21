@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.20.0 - 2026-11-21
+
+- `md-viewer notes` and `md-viewer links` on a folder skip what ripgrep skips (`.ignore` and `.gitignore` files in the folder, its subfolders and the folders above it, and git's exclude files), plus dot folders other than `.claude` and `.agents`. This replaces their fixed skip list, so a folder such as `node_modules` is skipped when an ignore file hides it. New dependency: `ignore-python`.
+- The file tree shows `.agents` folders, as it does `.claude`.
+
 ## 0.19.0 - 2026-11-17
 
 - `md-viewer list` prints a table of the running servers: path, port, process ID and URL.
