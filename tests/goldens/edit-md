@@ -42,6 +42,7 @@ content-type: text/html; charset=utf-8
 <li><a href="/dirty.md">dirty.md</a></li>
 <li><a href="/doc.md">doc.md</a></li>
 <li><a href="/escape.md">escape.md</a></li>
+<li><a href="/Makefile">Makefile</a></li>
 <li><a href="/new.md">new.md</a></li>
 <li><a href="/nonum.md">nonum.md</a></li></ul>
   </aside>

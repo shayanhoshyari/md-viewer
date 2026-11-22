@@ -97,11 +97,11 @@ def test_tree_shows_kept_dot_entries_only(tmp_path: Path) -> None:
     assert ".hidden" not in tree
 
 
-def test_tree_lists_js_and_ts_sources(tmp_path: Path) -> None:
-    for name in ["a.js", "b.mjs", "c.ts", "d.tsx", "e.png"]:
+def test_tree_lists_js_ts_and_makefile_sources(tmp_path: Path) -> None:
+    for name in ["a.js", "b.mjs", "c.ts", "d.tsx", "Makefile", "e.png"]:
         (tmp_path / name).write_text("x\n")
     tree = tree_html(tmp_path)
-    assert all(name in tree for name in ["a.js", "b.mjs", "c.ts", "d.tsx"])
+    assert all(name in tree for name in ["a.js", "b.mjs", "c.ts", "d.tsx", "Makefile"])
     assert "e.png" not in tree
 
 

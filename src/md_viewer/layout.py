@@ -9,7 +9,7 @@ from urllib.parse import quote
 
 from fastapi import HTTPException
 
-from md_viewer.constants import EXCLUDE, KEPT_DOT_FOLDERS, TREE_FILE_EXTS
+from md_viewer.constants import EXCLUDE, KEPT_DOT_FOLDERS, TREE_FILE_EXTS, TREE_FILE_NAMES
 from md_viewer.highlight import SHIKI_THEME, SHIKI_VERSION
 
 
@@ -50,7 +50,7 @@ def tree_html(root: Path) -> str:
                 lines.extend(inner)
                 lines.append("</ul></details></li>")
                 continue
-            if child.suffix.lower() not in TREE_FILE_EXTS:
+            if child.suffix.lower() not in TREE_FILE_EXTS and child.name not in TREE_FILE_NAMES:
                 continue
             rel = child.relative_to(root)
             href = "/" + quote(rel.as_posix())

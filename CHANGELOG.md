@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.23.0 - 2026-11-21
+
+- The file tree lists `Makefile`s, which open as highlighted source.
+
 ## 0.22.0 - 2026-11-21
 
 - The file tree lists JavaScript and TypeScript files (`.js .mjs .cjs .jsx .ts .tsx`), and all of them open as highlighted source.
