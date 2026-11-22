@@ -9,14 +9,16 @@ description: Serve markdown in the browser with section numbers, a table of cont
 
 ## Run it
 
-Start it in the background (Bash `run_in_background`), then give the user the URL it prints:
+Start it detached, then give the user the URL it prints. It returns once the server is up, and the server keeps running after this session ends:
 
 ```bash
-${CLAUDE_SKILL_DIR}/bin/md-viewer serve <path>
+${CLAUDE_SKILL_DIR}/bin/md-viewer serve --detach <path>
 ```
 
 - `<path>` is a folder, served as the root, or a file, which serves its parent folder; the printed URL opens that file. It defaults to the current directory.
 - The port is a free one picked at start; read it from the `serving <root> at http://127.0.0.1:<port>/...` line. `--port N` pins one.
+- If a server already serves that folder, `--detach` prints its URL instead of starting another, so running it again is safe.
+- A detached server logs to `$TMPDIR/md-viewer-<pid>.log` (deleted when it stops); if it fails to start, the error names the log. `kill <pid>`, with the process ID from `list`, stops it. Without `--detach`, the server runs in the foreground and logs to the terminal.
 - The first run builds the skill's venv, which takes a minute; uv prints its progress.
 - Every running server is listed at the top of the sidebar; clicking one switches to it. The ⧉ beside it copies the root path; the ⧉ beside the path above the tabs copies the open file's full path.
 - To show a different file under the same root, give its URL rather than starting a second server: `http://127.0.0.1:<port>/<path relative to root>`. Headings link as `#<github-style-slug>`.

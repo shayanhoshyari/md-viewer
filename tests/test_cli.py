@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import logging
+import os
+import signal
+import socket
+import sys
+import tempfile
 from pathlib import Path
 
 import pytest
 
-from md_viewer.cli import NotesTarget, Target, main, notes_report, parse_args
-from md_viewer.registry import Server
+from md_viewer.cli import NotesTarget, Target, default_log_file, log_to_file, main, notes_report, parse_args
+from md_viewer.registry import Server, live_servers, whoami
 
 
 def serve(argv: list[str]) -> Target:
@@ -142,6 +148,33 @@ def test_restart_reuses_the_target_and_bound_port(tmp_path: Path) -> None:
         "--port",
         "8123",
     ]
+    assert serve([str(tmp_path), "--log-file", "x.log"]).restart_argv(8123)[-2:] == [
+        "--log-file",
+        str(Path.cwd() / "x.log"),
+    ]
+
+
+def test_log_file_without_a_value_is_in_tmp_for_this_process(tmp_path: Path) -> None:
+    assert serve([str(tmp_path), "--log-file"]).log_file == default_log_file(os.getpid())
+    assert default_log_file(os.getpid()) == Path(tempfile.gettempdir()) / f"md-viewer-{os.getpid()}.log"
+    assert serve([str(tmp_path)]).log_file is None
+
+
+def test_log_file_rotates_into_two_files(tmp_path: Path) -> None:
+    root = logging.getLogger()
+    handlers, level = list(root.handlers), root.level
+    try:
+        log_to_file(tmp_path / "s.log", max_bytes=1000)
+        for i in range(200):
+            logging.getLogger("md_viewer").info("line %d", i)
+    finally:
+        for handler in root.handlers[len(handlers) :]:
+            handler.close()
+        root.handlers[:], root.level = handlers, level
+        sys.excepthook = sys.__excepthook__
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["s.log", "s.log.1"]
+    assert all(p.stat().st_size <= 1000 for p in tmp_path.iterdir())
+    assert "line 199" in (tmp_path / "s.log").read_text()
 
 
 def test_restart_command_reports_each_server(
@@ -223,3 +256,54 @@ def test_single_file_is_checked_even_when_ignored(tmp_path: Path, no_global_git:
     target = parse_args(["notes", str(tmp_path / "archive" / "a.md")])
     assert isinstance(target, NotesTarget)
     assert target.files == [tmp_path / "archive" / "a.md"]
+
+
+@pytest.fixture
+def isolated_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Registry and temp folder inside `tmp_path`, for this process and the children it starts."""
+    tmp = tmp_path / "tmp"
+    tmp.mkdir()
+    monkeypatch.setenv("MD_VIEWER_STATE_DIR", str(tmp_path / "state"))
+    monkeypatch.setenv("TMPDIR", str(tmp))
+    monkeypatch.setattr(tempfile, "tempdir", str(tmp))
+    return tmp
+
+
+def test_detach_starts_a_background_server_and_reuses_it(
+    tmp_path: Path, isolated_state: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    site = tmp_path / "site"
+    site.mkdir()
+    (site / "a.md").write_text("# hi\n")
+    assert main(["serve", "--detach", str(site / "a.md")]) == 0
+    line = capsys.readouterr().out.strip()
+    [server] = live_servers(None)
+    try:
+        assert line == f"serving {site.resolve()} at http://127.0.0.1:{server.port}/a.md"
+        assert whoami(server.port) == server.id
+        assert os.getsid(server.pid) == server.pid  # its own session, away from this terminal
+        log = isolated_state / f"md-viewer-{server.pid}.log"
+        assert "serving" in log.read_text()
+
+        assert main(["serve", "-d", str(site)]) == 0
+        assert capsys.readouterr().out == f"serving {site.resolve()} at http://127.0.0.1:{server.port}/\n"
+        assert live_servers(None) == [server]
+    finally:
+        os.kill(server.pid, signal.SIGTERM)
+        os.waitpid(server.pid, 0)
+    assert list(isolated_state.iterdir()) == []
+    assert live_servers(None) == []
+
+
+def test_detach_names_the_log_when_the_server_fails(
+    tmp_path: Path, isolated_state: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with socket.socket() as taken:
+        taken.bind(("127.0.0.1", 0))
+        taken.listen()
+        port = taken.getsockname()[1]
+        assert main(["serve", "-d", str(tmp_path), "--port", str(port)]) == 1
+    err = capsys.readouterr().err
+    assert err.startswith(f"failed to start, see {isolated_state}/md-viewer-")
+    assert err.endswith(".log\n")
+    assert "Address already in use" in Path(err.removeprefix("failed to start, see ").strip()).read_text()

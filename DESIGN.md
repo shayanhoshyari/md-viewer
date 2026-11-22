@@ -5,7 +5,7 @@ A local web server that shows a folder of markdown and source files as browsable
 ## Command line
 
 ```text
-md-viewer serve [PATH] [--host H] [--port N]
+md-viewer serve [PATH] [--host H] [--port N] [-d | --detach] [--log-file [FILE]]
 md-viewer notes [PATH]
 md-viewer links [PATH]
 md-viewer list
@@ -26,6 +26,11 @@ md-viewer restart
 
 - A path that doesn't exist is a usage error (exit status 2).
 - Once bound, the server registers itself (see [Server list](#server-list)) and unregisters when it shuts down, Ctrl-C and SIGTERM included.
+- `--log-file FILE` sends the server's log (uvicorn's and md-viewer's `logging` records at INFO and up, uncaught errors included) to `FILE` instead of the terminal, rotated at 1 MB into `FILE` and `FILE.1`, so it never holds more than two files. With no value, `FILE` is `md-viewer-<pid>.log` in the temp folder (`tempfile.gettempdir()`, `$TMPDIR` on macOS). The URL line is printed and logged. At shutdown, where the server unregisters, it deletes both files; after `kill -9` they stay in the temp folder.
+- `--detach` (`-d`) runs the server in the background, for one that should outlive the terminal or agent task that started it. `md-viewer list` finds it again; `kill <pid>` stops it.
+  - If a live server already serves the same root, the command prints the URL line with that server's port (the page part from `PATH`) and exits 0, starting nothing.
+  - Otherwise it starts `python -m md_viewer serve PATH --host H --port N --log-file [FILE]` (`FILE` when given) in a new session (`setsid`), with stdin, stdout and stderr on `/dev/null`: no controlling terminal, so closing the terminal, Ctrl-C and the end of an agent's background task don't reach it. When the command exits, launchd (process 1) adopts the server.
+  - It waits, for up to 15 seconds, until a registry entry with the child's process ID answers, then prints the URL line and exits 0. If the child exits first, or the wait runs out (the child is then killed), it prints `failed to start, see <log>` to stderr and exits 1. An error before logging is set up is lost; running in the foreground shows it.
 - `bin/md-viewer` runs the package with `uv run --frozen --no-dev --project <skill folder>`, so it works from any directory and through the `~/.local/bin/md-viewer` link. The first run builds `.venv/`.
 
 ### md-viewer notes
@@ -204,7 +209,7 @@ Every running md-viewer is listed at the top of every page, so you can jump betw
 - **Registry**: `$XDG_STATE_HOME/md-viewer/servers/` (default `~/.local/state/md-viewer/servers/`), or `MD_VIEWER_STATE_DIR`. Each server writes one file, `<id>.json` with `{id, pid, host, port, root, started}`, where `id` is a random UUID. The file is written to a temp name and renamed into place. A server writes and deletes only its own file, except that a reader deletes the files of servers it found dead.
 - **Liveness**: `GET /_whoami` answers `{id, root}`. An entry is alive when `http://127.0.0.1:<port>/_whoami` answers its `id` within 300 ms. All entries are probed at once, in threads. Connection refused, a different `id`, a bad answer or an unreadable file deletes the entry. A timeout hides it but keeps it, in case the server is only busy. The server's own entry isn't probed.
 - **`GET /_servers`**: `[{root, label, url, current}]`, sorted by root. `label` is the root with the home folder written `~`. This server is included with `url` `/` and `current` true. An app made without a registry id lists only itself.
-- **`POST /_restart`**: answers 202, then, after the answer is sent, the server deletes its registry entry and replaces itself with `os.execv`, running `python -m md_viewer serve <path> --host <host> --port <bound port>`. The process ID, parent, output and working folder stay; the code is loaded again from disk. The port is the one actually bound, so a server started on a free port comes back on the same one. There is no graceful shutdown: requests in flight are dropped. The entry is deleted first because the new process registers under a new id, and the old entry, with the same process and port, would otherwise still look alive. An app made without a restart command answers 404.
+- **`POST /_restart`**: answers 202, then, after the answer is sent, the server deletes its registry entry and replaces itself with `os.execv`, running `python -m md_viewer serve <path> --host <host> --port <bound port>`, plus `--log-file <file>` when the server logs to one, so it keeps logging to the same file. The process ID, parent, output and working folder stay; the code is loaded again from disk. The port is the one actually bound, so a server started on a free port comes back on the same one. There is no graceful shutdown: requests in flight are dropped. The entry is deleted first because the new process registers under a new id, and the old entry, with the same process and port, would otherwise still look alive. An app made without a restart command answers 404.
 - **Sidebar**: the header is this server's folder name, with the `~` path as its tooltip. Beside it, a ⧉ button copies the absolute root path to the clipboard (for `cd` and starting `claude` there) and shows ✓ for a moment. Clicking it opens a list fetched from `/_servers` each time it opens, showing each other server's folder name with its `~` path below, linking to its `url`. While loading it says "Looking…"; with none it says "No other servers".
 
 ## PDF

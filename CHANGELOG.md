@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.21.0 - 2026-11-21
+
+- `md-viewer serve --detach` (`-d`) starts the server in the background, in its own session, and returns once it is up with the usual URL line. If a server already serves that folder, it prints that server's URL instead. Stop one with `kill`, using the process ID from `md-viewer list`.
+- `md-viewer serve --log-file [FILE]` logs to a file rotated at 1 MB (two files at most) instead of the terminal, by default `md-viewer-<pid>.log` in the temp folder, and deletes it at shutdown. A detached server always logs this way, and `restart` keeps the file.
+
 ## 0.20.0 - 2026-11-21
 
 - `md-viewer notes` and `md-viewer links` on a folder skip what ripgrep skips (`.ignore` and `.gitignore` files in the folder, its subfolders and the folders above it, and git's exclude files), plus dot folders other than `.claude` and `.agents`. This replaces their fixed skip list, so a folder such as `node_modules` is skipped when an ignore file hides it. New dependency: `ignore-python`.
