@@ -43,6 +43,7 @@ SHIKI_LANGS = {
     "json",
     "jsonc",
     "jsonl",
+    "jsx",
     "make",
     "markdown",
     "proto",

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.22.0 - 2026-11-21
+
+- The file tree lists JavaScript and TypeScript files (`.js .mjs .cjs .jsx .ts .tsx`), and all of them open as highlighted source.
+
 ## 0.21.0 - 2026-11-21
 
 - `md-viewer serve --detach` (`-d`) starts the server in the background, in its own session, and returns once it is up with the usual URL line. If a server already serves that folder, it prints that server's URL instead. Stop one with `kill`, using the process ID from `md-viewer list`.

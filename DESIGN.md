@@ -87,7 +87,7 @@ Every request path is relative to the root. One route serves everything except t
 
 - `/_static/style.css`, `/_static/client.js`: package files from `static/`. `/_static/pygments.css`: the Pygments `friendly` style, scoped to `.code-block`.
 - A folder redirects to its `README.md`, else its `AGENTS.md`, else shows a listing of its entries (with `../` below the root).
-- A file whose suffix is in the source set (`.css .html .ini .js .json .md .py .pyi .sh .sql .toml .ts .yaml .yml`), or named `Makefile` or `OWNERS`, is text and gets views. Anything else, including images and PDFs, is served as-is with a type guessed from its name, except that `?view=diff` and `?view=raw` stay in the viewer: a file that looks like text (no NUL byte, valid UTF-8 in its first 8 KB) gets a diff and a `text/plain` Raw view (tabs `Diff | Raw`), and a binary file gets a diff page saying it is binary, with the source control panel (tab `Diff`).
+- A file whose suffix is in the source set (`.cjs .css .html .ini .js .json .jsx .md .mjs .py .pyi .sh .sql .toml .ts .tsx .yaml .yml`), or named `Makefile` or `OWNERS`, is text and gets views. Anything else, including images and PDFs, is served as-is with a type guessed from its name, except that `?view=diff` and `?view=raw` stay in the viewer: a file that looks like text (no NUL byte, valid UTF-8 in its first 8 KB) gets a diff and a `text/plain` Raw view (tabs `Diff | Raw`), and a binary file gets a diff page saying it is binary, with the source control panel (tab `Diff`).
 - Text files take `?view=`:
 
   | View | Markdown | Other text |
@@ -197,7 +197,7 @@ The Edit view of a markdown file is a plain textarea holding its source, for wri
 ## Sidebar
 
 - At the top, the server list (see [Server list](#server-list)).
-- A tree of the root: folders first, then files, case-insensitive. Only `.json .md .py .toml .yaml .yml` files appear; empty folders and hidden entries (except the `.claude` and `.agents` folders) are left out. `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.ruff_cache`, `node_modules` and `.DS_Store` are hidden from the tree and from listings.
+- A tree of the root: folders first, then files, case-insensitive. Only `.cjs .js .json .jsx .md .mjs .py .toml .ts .tsx .yaml .yml` files appear; empty folders and hidden entries (except the `.claude` and `.agents` folders) are left out. `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.ruff_cache`, `node_modules` and `.DS_Store` are hidden from the tree and from listings.
 - The current file is highlighted and its folders opened.
 - The filter box (`/` to focus, Esc to clear) hides files whose name doesn't match, and folders with no matches, without opening or closing any. A closed folder with matches turns accent-colored and shows its count.
 - The ☰ button hides the sidebar; the choice is kept in `localStorage`.

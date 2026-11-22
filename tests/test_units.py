@@ -97,6 +97,14 @@ def test_tree_shows_kept_dot_entries_only(tmp_path: Path) -> None:
     assert ".hidden" not in tree
 
 
+def test_tree_lists_js_and_ts_sources(tmp_path: Path) -> None:
+    for name in ["a.js", "b.mjs", "c.ts", "d.tsx", "e.png"]:
+        (tmp_path / name).write_text("x\n")
+    tree = tree_html(tmp_path)
+    assert all(name in tree for name in ["a.js", "b.mjs", "c.ts", "d.tsx"])
+    assert "e.png" not in tree
+
+
 def test_intraline_marks_changed_words() -> None:
     assert intraline("the quick fox", "the slow fox") == ("the <mark>quick</mark> fox", "the <mark>slow</mark> fox")
 
