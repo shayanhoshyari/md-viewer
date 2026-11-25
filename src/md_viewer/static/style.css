@@ -297,6 +297,11 @@ html.scm-hidden .scm { display: none; }
 }
 .md-note-tools button:hover, .note-add:hover, .note-actions button:hover { border-color: var(--accent); color: var(--accent); }
 .note-add { margin: 0; position: absolute; white-space: nowrap; z-index: 5; }
+.speak-button {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px; cursor: pointer;
+  font-size: 14px; line-height: 1.4; padding: 0 0.35rem; position: absolute; z-index: 6;
+}
+.speak-button:hover { border-color: var(--accent); }
 .note-editor textarea {
   border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; font: inherit; padding: 0.3rem; width: 100%;
 }

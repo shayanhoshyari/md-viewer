@@ -183,6 +183,25 @@ Quick notes left in the browser for the next Claude session to act on. They live
 - **Elsewhere**: Source and Raw show notes as they are. The rendered diff shows notes as the same boxes, line notes as their own blocks and row notes inside their table, without the buttons. The PDF leaves them out. `md-viewer notes` lists them (see [md-viewer notes](#md-viewer-notes)).
 - **Writing**: `PUT /_notes` with JSON `{path, version, block, quote, text}` sets the block's note, adding it or replacing the one there; `DELETE /_notes` with `{path, version, block}` removes it. `version` is the SHA-256 of the file the page showed (the page carries it as `data-notes-version`). The server finds the line itself: a new note line goes after the block and any notes below it; a row note is appended to the row's line after one space. Deleting a row note removes it and that space. Answers are JSON: `{version}`, or `{error}` with 400 (bad request, no such block, no note to delete, not markdown, no text), 403 (origin), 404 (not under the root), 409 (the file changed since the page loaded) or 415 (not JSON).
 
+## Read aloud
+
+On the Rendered tab of a markdown page, selecting text (by mouse or keyboard) shows a 🔊 button
+just above the end of the selection. Clicking it speaks the selection with the browser's speech
+synthesis; while it speaks the button shows ⏹ and stays visible even if the selection goes, and a
+click stops it. Speech also stops when the page unloads, as on every note save. There is no server
+side: it is all in `client.js`, and absent where the browser has no `speechSynthesis`.
+
+- **Text**: the selection as laid out, minus note boxes and editors. If it has any Han character,
+  only its Chinese runs (hanzi with their punctuation and digits) are spoken, so pinyin and
+  translations beside them are skipped; otherwise all of it.
+- **Chunks**: one utterance per sentence (split after `。！？.!?` and at newlines), since Chrome cuts
+  off a long utterance.
+- **Voice**: for Chinese, `lang` `zh-CN`, rate 0.85, and the first `zh-CN` voice whose name has
+  `Premium`, then `Enhanced`, then `Google`, then `Tingting`, else any `zh-CN` voice (macOS also
+  ships novelty voices, which is why the ranking names voices). Other text: the page's language or
+  the browser's, its default voice, rate 1.
+- Browsers allow speech only after a user gesture; the click on 🔊 is one.
+
 ## Edit
 
 The Edit view of a markdown file is a plain textarea holding its source, for writing a file from the browser on the machine running the server. It is kept dumb: no highlighting, preview or autosave.
@@ -223,6 +242,8 @@ The server itself never fetches anything except, for the PDF view, PlantUML SVGs
 - Mermaid 11 and KaTeX 0.16.22 from `cdn.jsdelivr.net`;
 - Shiki 3.23.0 and its grammars from `esm.sh`, only for languages a page uses;
 - PlantUML SVGs from `www.plantuml.com`, which receive only the diagram text (no referrer).
+
+[Read aloud](#read-aloud) with an online voice, such as Chrome's "Google 普通话（中国大陆）", sends the selected text to that voice's provider. Premium and Enhanced voices are local and rank first.
 
 ## Security
 

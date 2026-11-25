@@ -491,3 +491,149 @@ if (scmToggle) {
     if (area.value !== saved) { e.preventDefault(); e.returnValue = ''; }
   });
 })();
+
+// Read aloud: on a rendered page, a selection shows a 🔊 button by its end; clicking it speaks the
+// selection with the browser's speech. Text with hanzi speaks only its Chinese runs, with a Chinese
+// voice. While speaking the button shows ⏹ and stays, so a click always stops it.
+(function () {
+  var doc = document.querySelector('.markdown-body[data-notes-version]');
+  if (!doc || !window.speechSynthesis) return;
+  var synth = window.speechSynthesis;
+  synth.getVoices(); // Chrome fills the list asynchronously; ask early so it's ready at click time.
+
+  var button = document.createElement('button');
+  button.className = 'speak-button';
+  button.type = 'button';
+  button.hidden = true;
+  document.body.appendChild(button);
+  var speaking = false;
+  var run = 0; // Bumped per speak, so events from cancelled speech are ignored.
+  var utterances = []; // Held so Chrome can't collect them before they end.
+
+  var HAN = /\p{Script=Han}/u;
+  // Hanzi with the punctuation and digits that sit among them.
+  var CHINESE = /[\p{Script=Han}0-9　-〿！-＠…—·]+/gu;
+  var NOT_READ = '.md-note, .md-note-row, .note-editor, .note-add, .speak-button';
+
+  function show(label) {
+    button.textContent = label;
+    button.title = label === '⏹' ? 'Stop' : 'Read aloud';
+  }
+
+  function selectedRange() {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+    var active = document.activeElement;
+    if (active && /^(TEXTAREA|INPUT)$/.test(active.tagName)) return null;
+    var range = sel.getRangeAt(0);
+    var common = range.commonAncestorContainer;
+    if (common.nodeType !== 1) common = common.parentElement;
+    if (!common || !(doc === common || doc.contains(common))) return null;
+    return range;
+  }
+
+  // The range's text as laid out (cells and blocks apart), minus note boxes and editors.
+  function textOf(range) {
+    var holder = document.createElement('div');
+    holder.style.cssText = 'position:absolute;left:-99999px;top:0;white-space:pre-wrap';
+    holder.appendChild(range.cloneContents());
+    holder.querySelectorAll(NOT_READ).forEach(function (el) { el.remove(); });
+    document.body.appendChild(holder);
+    var text = holder.innerText;
+    holder.remove();
+    return text.trim();
+  }
+
+  function place(range) {
+    var rects = range.getClientRects();
+    var rect = rects.length ? rects[rects.length - 1] : range.getBoundingClientRect();
+    button.hidden = false;
+    button.style.top = (rect.top + window.scrollY - button.offsetHeight - 4) + 'px';
+    button.style.left = (rect.right + window.scrollX - button.offsetWidth / 2) + 'px';
+  }
+
+  function update() {
+    if (speaking) return;
+    var range = selectedRange();
+    if (!range || !textOf(range)) { button.hidden = true; return; }
+    show('🔊');
+    place(range);
+  }
+
+  function chineseVoice() {
+    var voices = synth.getVoices().filter(function (v) { return v.lang === 'zh-CN'; });
+    var ranks = [/Premium/, /Enhanced/, /Google/, /Tingting/];
+    for (var i = 0; i < ranks.length; i++) {
+      var hit = voices.find(function (v) { return ranks[i].test(v.name); });
+      if (hit) return hit;
+    }
+    return voices[0] || null;
+  }
+
+  // Sentences, one utterance each: Chrome cuts off a long utterance without an end event.
+  function chunks(text) {
+    return (text.match(/[^。！？.!?\n]+[。！？.!?]*/g) || [])
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s; });
+  }
+
+  function finish(id) {
+    if (id !== run) return;
+    speaking = false;
+    utterances = [];
+    update();
+  }
+
+  function speak(text) {
+    synth.cancel();
+    var id = ++run;
+    var chinese = HAN.test(text);
+    var parts;
+    if (chinese) {
+      parts = [];
+      (text.match(CHINESE) || []).forEach(function (piece) {
+        if (HAN.test(piece)) parts = parts.concat(chunks(piece));
+      });
+    } else {
+      parts = chunks(text);
+    }
+    if (!parts.length) return;
+    var voice = chinese ? chineseVoice() : null;
+    var lang = chinese ? 'zh-CN' : (document.documentElement.lang || navigator.language);
+    utterances = parts.map(function (part, i) {
+      var u = new SpeechSynthesisUtterance(part);
+      u.lang = lang;
+      if (voice) u.voice = voice;
+      u.rate = chinese ? 0.85 : 1;
+      u.onerror = function () { finish(id); };
+      if (i === parts.length - 1) u.onend = function () { finish(id); };
+      return u;
+    });
+    speaking = true;
+    show('⏹');
+    utterances.forEach(function (u) { synth.speak(u); });
+  }
+
+  // Keep the selection when the button is pressed.
+  button.addEventListener('mousedown', function (e) { e.preventDefault(); });
+  button.addEventListener('click', function () {
+    if (speaking) {
+      run++;
+      synth.cancel();
+      speaking = false;
+      utterances = [];
+      update();
+      return;
+    }
+    var range = selectedRange();
+    if (range) speak(textOf(range));
+  });
+
+  ['mouseup', 'keyup'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (e.target === button) return;
+      setTimeout(update, 0); // After the click has collapsed or set the selection.
+    });
+  });
+  window.addEventListener('pagehide', function () { synth.cancel(); });
+})();

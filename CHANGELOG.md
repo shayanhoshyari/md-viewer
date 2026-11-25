@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.24.0 - 2026-11-24
+
+- Read aloud: selecting text on a rendered page shows a 🔊 button that speaks it with the browser's speech, and ⏹ to stop. Text with hanzi speaks only its Chinese, with a Chinese voice (Premium or Enhanced first, then Google, then Tingting) at 0.85 speed. With an online voice the selected text goes to its provider.
+
 ## 0.23.0 - 2026-11-21
 
 - The file tree lists `Makefile`s, which open as highlighted source.
