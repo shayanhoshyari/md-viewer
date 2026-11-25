@@ -33,11 +33,13 @@ content-type: text/html; charset=utf-8
     <div class="servers-head"><details class="servers"><summary title="<root>">site</summary><ul class="server-list"><li class="server-note">Looking…</li></ul></details><button class="copy-root" data-copy="<root>" title="Copy folder path">&#10697;</button></div>
     <input class="tree-filter" type="search" placeholder="Filter files ( / )" autocomplete="off" spellcheck="false">
     <ul class="tree-root"><li class="dir"><details><summary>sub/</summary><ul>
+<li><a href="/sub/NOTES">NOTES</a></li>
 <li><a href="/sub/pair-b.md">pair-b.md</a></li>
 </ul></details></li>
 <li><a href="/blocks.md">blocks.md</a></li>
 <li><a href="/front.md">front.md</a></li>
 <li><a href="/history.md">history.md</a></li>
+<li><a href="/logo.bin">logo.bin</a></li>
 <li><a href="/notes.md">notes.md</a></li>
 <li><a href="/pair-a.md">pair-a.md</a></li>
 <li><a href="/staged.md">staged.md</a></li></ul>

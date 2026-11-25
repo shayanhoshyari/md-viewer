@@ -36,12 +36,13 @@ content-type: text/html; charset=utf-8
 </ul></details></li>
 <li class="dir"><details><summary>notes/</summary><ul>
 <li><a href="/notes/data.json">data.json</a></li>
+<li><a href="/notes/plain.txt">plain.txt</a></li>
 </ul></details></li>
 <li><a href="/clean.md">clean.md</a></li>
 <li><a href="/code.py">code.py</a></li>
 <li><a href="/dirty.md">dirty.md</a></li>
 <li><a href="/doc.md">doc.md</a></li>
-<li><a href="/escape.md">escape.md</a></li>
+<li><a href="/image.png">image.png</a></li>
 <li><a href="/Makefile">Makefile</a></li>
 <li><a href="/new.md">new.md</a></li>
 <li><a href="/nonum.md">nonum.md</a></li></ul>

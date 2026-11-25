@@ -17,9 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import quote
 
-import ignore
 import uvicorn
 from fastapi import FastAPI
 from rich import box
@@ -27,7 +25,7 @@ from rich.console import Console
 from rich.table import Table
 
 from md_viewer.app import create_app
-from md_viewer.constants import KEPT_DOT_FOLDERS
+from md_viewer.config import ConfigError, find_config, walk
 from md_viewer.layout import short_path
 from md_viewer.links import check_links
 from md_viewer.markdown import find_notes
@@ -38,20 +36,18 @@ from md_viewer.registry import live_servers, register, restart, unregister
 class Target:
     """`md-viewer serve`: what to serve, before any socket is bound."""
 
-    path: Path
     root: Path
     host: str
     port: int
-    page_path: str
     detach: bool = False
     log_file: Path | None = None
 
     def url_line(self, port: int) -> str:
-        return f"serving {self.root} at http://{self.host}:{port}/{self.page_path}"
+        return f"serving {self.root} at http://{self.host}:{port}/"
 
     def serve_argv(self, port: int) -> list[str]:
         """`md-viewer serve` for this target in the foreground, through this Python."""
-        return [sys.executable, "-m", "md_viewer", "serve", str(self.path), "--host", self.host, "--port", str(port)]
+        return [sys.executable, "-m", "md_viewer", "serve", str(self.root), "--host", self.host, "--port", str(port)]
 
     def restart_argv(self, port: int) -> list[str]:
         """The command `POST /_restart` re-executes: the same target, on the port actually bound, same log file."""
@@ -102,9 +98,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="md-viewer", description="Browse markdown and source files, and their notes.")
     commands = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
     serve = commands.add_parser(
-        "serve", help="serve a folder or file in the browser", description="Serve a folder or file in the browser."
+        "serve", help="serve a folder in the browser", description="Serve a folder in the browser."
     )
-    serve.add_argument("path", nargs="?", default=Path.cwd(), type=Path, help="folder or file to serve")
+    serve.add_argument("path", nargs="?", default=Path.cwd(), type=Path, help="folder to serve")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", default=0, type=int, help="default: a free port")
     serve.add_argument(
@@ -120,13 +116,13 @@ def build_parser() -> argparse.ArgumentParser:
     notes = commands.add_parser(
         "notes", help="list notes with the blocks they're on", description="List notes with the blocks they're on."
     )
-    notes.add_argument("path", nargs="?", default=Path.cwd(), type=Path, help="markdown file or folder")
+    notes.add_argument("path", nargs="?", default=Path.cwd(), type=Path, help="folder of markdown files")
     links = commands.add_parser(
         "links",
         help="list relative links to missing files or headings",
         description="List relative links and images that point at a missing file or heading.",
     )
-    links.add_argument("path", nargs="?", default=Path.cwd(), type=Path, help="markdown file or folder")
+    links.add_argument("path", nargs="?", default=Path.cwd(), type=Path, help="folder of markdown files")
     commands.add_parser(
         "list", help="list running servers and their URLs", description="List every running server and its URL."
     )
@@ -139,20 +135,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def markdown_files(folder: Path) -> list[Path]:
-    """Every .md file under `folder`, skipping what ripgrep skips and dot folders not in `KEPT_DOT_FOLDERS`."""
-    found: list[Path] = []
-    for entry in ignore.WalkBuilder(folder).hidden(False).build():
-        path = entry.path()
-        hidden_folder = any(
-            p.startswith(".") and p not in KEPT_DOT_FOLDERS for p in path.relative_to(folder).parts[:-1]
-        )
-        if path.name.lower().endswith(".md") and path.is_file() and not hidden_folder:
-            found.append(path)
-    return sorted(found)
+    """Every .md file under `folder`, skipping what the config's `[check]` list ignores."""
+    return [p for p in walk(folder, find_config(folder).check) if p.suffix.lower() == ".md"]
 
 
 def parse_args(argv: list[str] | None = None) -> Target | NotesTarget | LinksTarget | ListTarget | RestartTarget:
-    """Turn argv into what to do; a missing path exits with a usage error."""
+    """Turn argv into what to do; a path that isn't a folder, or a bad config, exits with a usage error."""
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command == "list":
@@ -161,19 +149,19 @@ def parse_args(argv: list[str] | None = None) -> Target | NotesTarget | LinksTar
         return RestartTarget()
     if not args.path.exists():
         parser.error(f"{args.path} does not exist")
+    if not args.path.is_dir():
+        parser.error(f"{args.path} is not a folder")
     if args.command in ("notes", "links"):
-        files = markdown_files(args.path) if args.path.is_dir() else [args.path]
+        try:
+            files = markdown_files(args.path)
+        except ConfigError as exc:
+            parser.error(str(exc))
         return NotesTarget(files) if args.command == "notes" else LinksTarget(files)
-    target = args.path.resolve()
-    root = target if target.is_dir() else target.parent
-    page_path = "" if target == root else quote(target.name)
     log_file = None if args.log_file is None else args.log_file.absolute()
     return Target(
-        path=target,
-        root=root,
+        root=args.path.resolve(),
         host=args.host,
         port=args.port,
-        page_path=page_path,
         detach=args.detach,
         log_file=log_file,
     )

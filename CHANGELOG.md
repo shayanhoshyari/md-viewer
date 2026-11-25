@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.26.0 - 2026-11-25
+
+- An `md-viewer.toml`, the first one found in the folder or above it, says what is left out: `[tree] ignore` for the file tree and directory listings, `[check] ignore` for `notes` and `links`. An entry is a name matched at any depth or a path relative to the toml. With no toml, a packaged default leaves out `.git`, `.venv`, `node_modules`, `__pycache__`, the tool caches and `.DS_Store`.
+- Nothing else is left out: the file tree lists every file type and hidden files and folders. `.ignore` and `.gitignore` files are no longer read, and the dependency on `ignore-python` is gone.
+- Walks skip symlinks, so a symlinked folder, such as a virtualenv, no longer fills the tree and slows every page.
+- `serve`, `notes` and `links` take a folder only; a file is a usage error. To open a file, add its path to the server's URL.
+
 ## 0.25.0 - 2026-11-24
 
 - Read aloud speaks English with the Chinese voice too, instead of the browser's default English voice, which on macOS is the novelty voice Albert.

@@ -26,17 +26,13 @@ def test_folder_serves_itself(tmp_path: Path) -> None:
     assert target.url_line(8123) == f"serving {tmp_path.resolve()} at http://127.0.0.1:8123/"
 
 
-def test_file_serves_parent_and_links_the_file(tmp_path: Path) -> None:
+def test_a_file_is_a_usage_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     (tmp_path / "notes.md").write_text("# hi\n")
-    target = serve([str(tmp_path / "notes.md"), "--port", "9000"])
-    assert target.root == tmp_path.resolve()
-    assert target.port == 9000
-    assert target.url_line(9000).endswith("http://127.0.0.1:9000/notes.md")
-
-
-def test_file_name_is_url_quoted(tmp_path: Path) -> None:
-    (tmp_path / "my notes #1.md").write_text("# hi\n")
-    assert serve([str(tmp_path / "my notes #1.md")]).page_path == "my%20notes%20%231.md"
+    for command in ("serve", "notes", "links"):
+        with pytest.raises(SystemExit) as exc:
+            parse_args([command, str(tmp_path / "notes.md")])
+        assert exc.value.code == 2
+        assert "is not a folder" in capsys.readouterr().err
 
 
 def test_default_is_current_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -93,33 +89,9 @@ def test_notes_report_top_of_file_and_long_blocks(tmp_path: Path, monkeypatch: p
     assert "  > … 7 more lines\n  note: long" in report
 
 
-def test_notes_on_a_folder_skip_dot_folders_but_kept_ones(tmp_path: Path) -> None:
-    for rel in [
-        "b.md",
-        "sub/a.md",
-        "sub/.draft.md",
-        ".hidden/x.md",
-        ".venv/y.md",
-        ".claude/z.md",
-        ".agents/w.md",
-        "sub/c.txt",
-    ]:
-        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
-        (tmp_path / rel).write_text("<!-- note: n -->\n")
-    target = parse_args(["notes", str(tmp_path)])
-    assert isinstance(target, NotesTarget)
-    assert [p.relative_to(tmp_path).as_posix() for p in target.files] == [
-        ".agents/w.md",
-        ".claude/z.md",
-        "b.md",
-        "sub/.draft.md",
-        "sub/a.md",
-    ]
-
-
 def test_notes_command_prints_nothing_without_notes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     (tmp_path / "a.md").write_text("# T\n\n<!-- not a note -->\n")
-    assert main(["notes", str(tmp_path / "a.md")]) == 0
+    assert main(["notes", str(tmp_path)]) == 0
     assert capsys.readouterr().out == ""
 
 
@@ -136,13 +108,12 @@ def test_notes_report_on_a_row(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 
 
 def test_restart_reuses_the_target_and_bound_port(tmp_path: Path) -> None:
-    (tmp_path / "notes.md").write_text("# hi\n")
-    argv = serve([str(tmp_path / "notes.md")]).restart_argv(8123)
+    argv = serve([str(tmp_path)]).restart_argv(8123)
     assert argv[1:] == [
         "-m",
         "md_viewer",
         "serve",
-        str(tmp_path.resolve() / "notes.md"),
+        str(tmp_path.resolve()),
         "--host",
         "127.0.0.1",
         "--port",
@@ -220,42 +191,42 @@ def md_files(path: Path) -> list[str]:
     return [p.relative_to(path).as_posix() for p in target.files]
 
 
-@pytest.fixture
-def no_global_git(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Keep the machine's global git excludes file out of the walk."""
-    monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "home" / ".config"))
-
-
 def write(root: Path, *rels: str) -> None:
     for rel in rels:
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
         (root / rel).write_text("<!-- note: n -->\n")
 
 
-def test_folder_walk_honors_a_parent_ignore_file(tmp_path: Path, no_global_git: None) -> None:
+def test_notes_walk_everything_but_the_default_ignores(tmp_path: Path) -> None:
+    write(tmp_path, "b.md", "sub/.draft.md", ".hidden/x.md", ".venv/y.md", ".git/z.md", "node_modules/w.md", "c.txt")
+    assert md_files(tmp_path) == [".hidden/x.md", "b.md", "sub/.draft.md"]
+
+
+def test_notes_use_the_check_list_of_the_nearest_config(tmp_path: Path) -> None:
     root = tmp_path / "repo"
-    write(root, "x/plans/archive/a.md", "x/plans/b.md", "c.md")
-    (root / ".ignore").write_text("archive/\n")
-    assert md_files(root) == ["c.md", "x/plans/b.md"]
+    write(root, "x/plans/archive/a.md", "x/plans/b.md", "x/tmp/t.md", "tmp/t.md", "c.md")
+    (root / "md-viewer.toml").write_text('[tree]\nignore = []\n[check]\nignore = ["archive/", "x/tmp"]\n')
+    assert md_files(root) == ["c.md", "tmp/t.md", "x/plans/b.md"]
     assert md_files(root / "x" / "plans") == ["b.md"]
+    (root / "x" / "md-viewer.toml").write_text("")  # the nearest one wins, with nothing to merge
+    assert md_files(root / "x") == ["plans/archive/a.md", "plans/b.md", "tmp/t.md"]
 
 
-def test_folder_walk_honors_gitignore_inside_a_repository(tmp_path: Path, no_global_git: None) -> None:
-    root = tmp_path / "repo"
-    write(root, "kept.md", "built/out.md")
-    (root / ".gitignore").write_text("built/\n")
-    assert md_files(root) == ["built/out.md", "kept.md"]
-    (root / ".git").mkdir()
-    assert md_files(root) == ["kept.md"]
+def test_a_bad_config_is_a_usage_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    for text in ['[list]\nignore = ["a"]\n', '[check]\nignore = "a"\n', '[check]\nignore = ["../a"]\n', "[check"]:
+        (tmp_path / "md-viewer.toml").write_text(text)
+        with pytest.raises(SystemExit) as exc:
+            parse_args(["links", str(tmp_path)])
+        assert exc.value.code == 2
+        assert f"{tmp_path.resolve() / 'md-viewer.toml'}: " in capsys.readouterr().err
 
 
-def test_single_file_is_checked_even_when_ignored(tmp_path: Path, no_global_git: None) -> None:
-    write(tmp_path, "archive/a.md")
-    (tmp_path / ".ignore").write_text("archive/\n")
-    target = parse_args(["notes", str(tmp_path / "archive" / "a.md")])
-    assert isinstance(target, NotesTarget)
-    assert target.files == [tmp_path / "archive" / "a.md"]
+def test_walk_skips_symlinks(tmp_path: Path) -> None:
+    write(tmp_path / "outside", "far.md", "deep/far.md")
+    write(tmp_path / "root", "a.md")
+    (tmp_path / "root" / "link.md").symlink_to(tmp_path / "outside" / "far.md")
+    (tmp_path / "root" / "env").symlink_to(tmp_path / "outside", target_is_directory=True)
+    assert md_files(tmp_path / "root") == ["a.md"]
 
 
 @pytest.fixture
@@ -275,11 +246,11 @@ def test_detach_starts_a_background_server_and_reuses_it(
     site = tmp_path / "site"
     site.mkdir()
     (site / "a.md").write_text("# hi\n")
-    assert main(["serve", "--detach", str(site / "a.md")]) == 0
+    assert main(["serve", "--detach", str(site)]) == 0
     line = capsys.readouterr().out.strip()
     [server] = live_servers(None)
     try:
-        assert line == f"serving {site.resolve()} at http://127.0.0.1:{server.port}/a.md"
+        assert line == f"serving {site.resolve()} at http://127.0.0.1:{server.port}/"
         assert whoami(server.port) == server.id
         assert os.getsid(server.pid) == server.pid  # its own session, away from this terminal
         log = isolated_state / f"md-viewer-{server.pid}.log"

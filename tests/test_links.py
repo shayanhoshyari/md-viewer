@@ -67,5 +67,6 @@ def test_command_on_a_folder(site: Path, capsys: pytest.CaptureFixture[str]) -> 
 
 
 def test_command_without_problems(site: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["links", "other.md"]) == 0
+    (site / "sub" / "fine.md").write_text("[up](../other.md#a-heading)\n")
+    assert main(["links", "sub"]) == 0
     assert capsys.readouterr().out == ""

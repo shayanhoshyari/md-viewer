@@ -9,7 +9,7 @@ from urllib.parse import quote
 
 from fastapi import HTTPException
 
-from md_viewer.constants import EXCLUDE, KEPT_DOT_FOLDERS, TREE_FILE_EXTS, TREE_FILE_NAMES
+from md_viewer.config import find_config, listing, walk
 from md_viewer.highlight import SHIKI_THEME, SHIKI_VERSION
 
 
@@ -30,34 +30,32 @@ def resolve_safe(root: Path, request_path: str) -> Path:
     return target
 
 
+# Folder names end in `/` and hold their entries; a file maps to an empty dict.
+type Tree = dict[str, Tree]
+
+
 def tree_html(root: Path) -> str:
-    def walk(dir_path: Path) -> list[str]:
-        try:
-            children = sorted(dir_path.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
-        except OSError:
-            return []
+    """The sidebar tree: every file the `[tree]` list leaves, folders first, then files, case-insensitive."""
+    nested: Tree = {}
+    for path in walk(root, find_config(root).tree):
+        node = nested
+        for part in path.relative_to(root).parts[:-1]:
+            node = node.setdefault(part + "/", {})
+        node[path.name] = {}
+
+    def render(node: Tree, prefix: str) -> list[str]:
         lines: list[str] = []
-        for child in children:
-            if child.name in EXCLUDE:
-                continue
-            if child.name.startswith(".") and child.name not in KEPT_DOT_FOLDERS:
-                continue
-            if child.is_dir():
-                inner = walk(child)
-                if not inner:
-                    continue
-                lines.append(f'<li class="dir"><details><summary>{html.escape(child.name)}/</summary><ul>')
-                lines.extend(inner)
+        for key in sorted(node, key=lambda k: (not k.endswith("/"), k.lower())):
+            if key.endswith("/"):
+                lines.append(f'<li class="dir"><details><summary>{html.escape(key)}</summary><ul>')
+                lines.extend(render(node[key], prefix + key))
                 lines.append("</ul></details></li>")
-                continue
-            if child.suffix.lower() not in TREE_FILE_EXTS and child.name not in TREE_FILE_NAMES:
-                continue
-            rel = child.relative_to(root)
-            href = "/" + quote(rel.as_posix())
-            lines.append(f'<li><a href="{href}">{html.escape(child.name)}</a></li>')
+            else:
+                href = "/" + quote(prefix + key)
+                lines.append(f'<li><a href="{href}">{html.escape(key)}</a></li>')
         return lines
 
-    return '<ul class="tree-root">' + "\n".join(walk(root)) + "</ul>"
+    return '<ul class="tree-root">' + "\n".join(render(nested, "")) + "</ul>"
 
 
 def view_links(rel: Path, current: str, *, markdown: bool, source: bool = True, raw: bool = True) -> str:
@@ -159,13 +157,11 @@ def page(root: Path, title: str, body: str, rel: Path, views: str = "", panel: s
 </html>"""  # noqa: E501
 
 
-def directory_listing(path: Path, rel: Path) -> str:
+def directory_listing(root: Path, path: Path, rel: Path) -> str:
     rows = []
     if rel.parts:
         rows.append('<li><a href="../">../</a></li>')
-    for child in sorted(path.iterdir()):
-        if child.name in EXCLUDE:
-            continue
+    for child in listing(path, find_config(root).tree):
         suffix = "/" if child.is_dir() else ""
         name = child.name + suffix
         rows.append(f'<li><a href="{quote(name)}">{html.escape(name)}</a></li>')

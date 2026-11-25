@@ -15,7 +15,7 @@ Start it detached, then give the user the URL it prints. It returns once the ser
 ${CLAUDE_SKILL_DIR}/bin/md-viewer serve --detach <path>
 ```
 
-- `<path>` is a folder, served as the root, or a file, which serves its parent folder; the printed URL opens that file. It defaults to the current directory.
+- `<path>` is the folder served as the root, by default the current directory. To open a file, add its path relative to the root to the printed URL.
 - The port is a free one picked at start; read it from the `serving <root> at http://127.0.0.1:<port>/...` line. `--port N` pins one.
 - If a server already serves that folder, `--detach` prints its URL instead of starting another, so running it again is safe.
 - A detached server logs to `$TMPDIR/md-viewer-<pid>.log` (deleted when it stops); if it fails to start, the error names the log. `kill <pid>`, with the process ID from `list`, stops it. Without `--detach`, the server runs in the foreground and logs to the terminal.
@@ -37,12 +37,12 @@ On the Rendered tab, the user can leave a note on a block or a table row (hover 
 
 When asked to check, handle or address the notes:
 
-1. `${CLAUDE_SKILL_DIR}/bin/md-viewer notes <file or folder>` lists each note with its file and line, the block it's on and that block's source, and the quote if any. Read more of the file only where a note needs it.
+1. `${CLAUDE_SKILL_DIR}/bin/md-viewer notes <folder>` lists each note in the folder's markdown files with its file and line, the block it's on and that block's source, and the quote if any. Read more of the file only where a note needs it.
 2. Act on each one.
 3. Delete the notes that were handled: a note line whole, a row note with the space before it. Leave the rest and say why.
 
 ## Links
 
-When asked to check links in markdown, or after edits where a folder's instructions ask for it, run `${CLAUDE_SKILL_DIR}/bin/md-viewer links <file or folder>`. It prints `path:line: missing file: …` or `missing anchor: …` for each relative link or image that points at a missing file or heading, using the same heading anchors the viewer renders, and nothing when all is well. Fix each one: correct the path or anchor, or drop the link. External URLs aren't checked. On a folder it skips what `.ignore` and `.gitignore` files hide, as ripgrep does.
+When asked to check links in markdown, or after edits where a folder's instructions ask for it, run `${CLAUDE_SKILL_DIR}/bin/md-viewer links <folder>`. It prints `path:line: missing file: …` or `missing anchor: …` for each relative link or image that points at a missing file or heading, using the same heading anchors the viewer renders, and nothing when all is well. Fix each one: correct the path or anchor, or drop the link. External URLs aren't checked. It skips what the `[check]` list of the nearest `md-viewer.toml` ignores (see [DESIGN.md](DESIGN.md#config)).
 
 The PDF tab needs `brew install pango`; without it that tab shows the hint and everything else works.

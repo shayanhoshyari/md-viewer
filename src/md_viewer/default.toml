@@ -1,0 +1,7 @@
+# Used when no md-viewer.toml is found in the folder or above it. See DESIGN.md, Config.
+
+[tree]
+ignore = [".git", ".venv", "node_modules", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache", ".DS_Store"]
+
+[check]
+ignore = [".git", ".venv", "node_modules", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache", ".DS_Store"]

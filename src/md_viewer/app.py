@@ -19,6 +19,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Resp
 from pydantic import BaseModel, ValidationError
 from starlette.background import BackgroundTask
 
+from md_viewer.config import ConfigError
 from md_viewer.constants import BINARY_EXTS, SOURCE_EXTS
 from md_viewer.diff import render_diff
 from md_viewer.highlight import PYGMENTS_FORMATTER, render_source
@@ -189,6 +190,10 @@ def create_app(root: Path, server_id: str | None = None, restart_argv: list[str]
         openapi_url="/_openapi.json",
     )
 
+    @app.exception_handler(ConfigError)
+    def config_error(_: Request, exc: ConfigError) -> Response:
+        return Response(str(exc), status_code=500, media_type="text/plain; charset=utf-8")
+
     @app.get("/_static/style.css", include_in_schema=False)
     def style() -> Response:
         return Response(STYLE, media_type="text/css")
@@ -267,7 +272,7 @@ def create_app(root: Path, server_id: str | None = None, restart_argv: list[str]
                 if (target / index).exists():
                     href = "/" + quote((rel / index).as_posix())
                     return RedirectResponse(href)
-            return HTMLResponse(page(root, rel.as_posix() or ".", directory_listing(target, rel), rel))
+            return HTMLResponse(page(root, rel.as_posix() or ".", directory_listing(root, target, rel), rel))
         suffix = target.suffix.lower()
         is_text = suffix in SOURCE_EXTS or target.name in {"Makefile", "OWNERS"}
         is_markdown = suffix == ".md"

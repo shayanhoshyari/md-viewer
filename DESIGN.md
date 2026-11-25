@@ -16,26 +16,26 @@ md-viewer restart
 
 ### md-viewer serve
 
-- `PATH` defaults to the current directory. A folder is served as the root. A file serves its parent folder, and the printed URL opens that file.
+- `PATH` is the folder served as the root, by default the current directory. A file is a usage error; to open one, add its path to the URL.
 - `--host` defaults to `127.0.0.1`. `--port` defaults to `0`, a free port picked by the OS.
 - The socket is bound before anything is printed, so the URL carries the real port. The one line printed is:
 
   ```text
-  serving <root> at http://<host>:<port>/<file, URL-quoted, or nothing for a folder>
+  serving <root> at http://<host>:<port>/
   ```
 
 - A path that doesn't exist is a usage error (exit status 2).
 - Once bound, the server registers itself (see [Server list](#server-list)) and unregisters when it shuts down, Ctrl-C and SIGTERM included.
 - `--log-file FILE` sends the server's log (uvicorn's and md-viewer's `logging` records at INFO and up, uncaught errors included) to `FILE` instead of the terminal, rotated at 1 MB into `FILE` and `FILE.1`, so it never holds more than two files. With no value, `FILE` is `md-viewer-<pid>.log` in the temp folder (`tempfile.gettempdir()`, `$TMPDIR` on macOS). The URL line is printed and logged. At shutdown, where the server unregisters, it deletes both files; after `kill -9` they stay in the temp folder.
 - `--detach` (`-d`) runs the server in the background, for one that should outlive the terminal or agent task that started it. `md-viewer list` finds it again; `kill <pid>` stops it.
-  - If a live server already serves the same root, the command prints the URL line with that server's port (the page part from `PATH`) and exits 0, starting nothing.
+  - If a live server already serves the same root, the command prints the URL line with that server's port and exits 0, starting nothing.
   - Otherwise it starts `python -m md_viewer serve PATH --host H --port N --log-file [FILE]` (`FILE` when given) in a new session (`setsid`), with stdin, stdout and stderr on `/dev/null`: no controlling terminal, so closing the terminal, Ctrl-C and the end of an agent's background task don't reach it. When the command exits, launchd (process 1) adopts the server.
   - It waits, for up to 15 seconds, until a registry entry with the child's process ID answers, then prints the URL line and exits 0. If the child exits first, or the wait runs out (the child is then killed), it prints `failed to start, see <log>` to stderr and exits 1. An error before logging is set up is lost; running in the foreground shows it.
 - `bin/md-viewer` runs the package with `uv run --frozen --no-dev --project <skill folder>`, so it works from any directory and through the `~/.local/bin/md-viewer` link. The first run builds `.venv/`.
 
 ### md-viewer notes
 
-Lists the [notes](#notes) in a markdown file, or in every `.md` file under a folder (skipping dot folders other than `.claude` and `.agents`, and [what ripgrep skips](#ignore-files)), so an agent handling them reads only the notes and the blocks they're on. `PATH` defaults to the current directory. For each note it prints the file and line, the kind of block the note is on and its lines, that block's source (at most 15 lines), the quote if any, and the text:
+Lists the [notes](#notes) in every `.md` file under a folder (skipping what the [config](#config) ignores for checks), so an agent handling them reads only the notes and the blocks they're on. `PATH` defaults to the current directory. For each note it prints the file and line, the kind of block the note is on and its lines, that block's source (at most 15 lines), the quote if any, and the text:
 
 ```text
 plans/next.md:19  paragraph, lines 15-18
@@ -45,20 +45,16 @@ plans/next.md:19  paragraph, lines 15-18
   note: will allowing this after any line be simpler?
 ```
 
-Notes are separated by a blank line. A note above every block shows `top of file` and no source. No notes prints nothing. Blocks are found by the same code the server uses to place notes, so the two agree. A path that doesn't exist is a usage error.
+Notes are separated by a blank line. A note above every block shows `top of file` and no source. No notes prints nothing. Blocks are found by the same code the server uses to place notes, so the two agree. A path that doesn't exist or isn't a folder is a usage error.
 
 ### md-viewer links
 
-Lists relative links and images that point at a missing file or heading, in a markdown file or every `.md` file under a folder (skipping dot folders other than `.claude` and `.agents`, and [what ripgrep skips](#ignore-files)). `PATH` defaults to the current directory.
+Lists relative links and images that point at a missing file or heading, in every `.md` file under a folder (skipping what the [config](#config) ignores for checks). `PATH` defaults to the current directory; a path that doesn't exist or isn't a folder is a usage error.
 
 - A link's target, relative to its file, must exist; a folder counts. A `#anchor` into a `.md` file, or alone for the same file, must be the id of one of its headings as the viewer renders them (GitHub-style slugs, from the same parser). Anchors into other files aren't checked.
 - Links with a scheme or host (`https:`, `mailto:`) aren't checked, so the command is offline. Links in code are not links.
 - It prints one line per problem, `doc.md:12: missing file: other.md` or `doc.md:14: missing anchor: other.md#setup`, with the line the link is on and paths relative to the current directory, and exits 1 if there were any. No problems prints nothing.
 - The checker is part of the [public API](#public-api), so a folder's own checker can depend on the package and add its rules on top of `links_of` and `link_problem`.
-
-#### Ignore files
-
-When `PATH` is a folder, `notes` and `links` skip what ripgrep skips with its default settings, using the same Rust `ignore` crate (through `ignore-python`): `.ignore` files, `.gitignore` files inside a git repository, `.git/info/exclude` and the global git excludes file, read from `PATH`, its subfolders and the folders above it. md-viewer has no matching rules of its own. Unlike ripgrep's default, hidden files are not skipped and `.claude` and `.agents` are walked; other dot folders are not. There is no other skip list, so a `node_modules` or `.venv` is skipped through an ignore file (or for being hidden). A `PATH` that is a single file is checked even if an ignore file matches it. The file tree and listings of `md-viewer serve` don't read ignore files.
 
 ### md-viewer list
 
@@ -213,10 +209,29 @@ The Edit view of a markdown file is a plain textarea holding its source, for wri
 - Tab moves focus, as in any textarea.
 - **Writing**: `PUT /_file` with JSON `{path, version, text}` replaces the file with `text`. The browser sends `\n` line endings; the server writes the file's own (CRLF when the old file's first line ends in CRLF). The final newline is whatever `text` has. Answers are JSON: `{version}`, or `{error}` with 400 (bad request, not markdown, not UTF-8), 403 (origin), 404 (not under the root or missing), 409 (the file changed since the page loaded) or 415 (not JSON).
 
+## Config
+
+`md-viewer.toml` says what the file tree, directory listings, `notes` and `links` leave out. It is looked up from the served root (`serve`) or `PATH` (`notes`, `links`), then each folder above it up to the file system root, and the first one found is used. Files are never merged.
+
+```toml
+[tree]   # the sidebar tree and directory listings
+ignore = [".git", ".venv", "node_modules", "tmp"]
+
+[check]  # md-viewer notes and md-viewer links
+ignore = [".git", ".venv", "node_modules", "archive"]
+```
+
+- An entry without `/` matches a file or folder with that name at any depth. An entry with `/` is a path relative to the folder holding the toml. A leading or trailing `/` is dropped, so `archive/` is a name. There are no globs and no negation. An ignored folder isn't entered.
+- With no toml found, the one packaged as `md_viewer/default.toml` is used. It ignores `.git`, `.venv`, `node_modules`, `__pycache__`, `.pytest_cache`, `.ruff_cache`, `.mypy_cache` and `.DS_Store` in both lists.
+- A toml that leaves a table out ignores nothing there. Other keys, an `ignore` that isn't a list of strings, or an entry that is empty or has a `.` or `..` part is an error naming the file: a usage error for the commands, and a 500 with the message for pages.
+- The toml is read again on every walk, so an edit applies on the next page load.
+- Nothing else is left out: hidden files and folders are walked, and the tree lists every file type. `.gitignore` and `.ignore` files aren't read (the source control panel goes by git's own rules, see [Diff](#diff)).
+- Every walk skips symlinks: they are neither listed nor entered. A file reached by URL is still served when it resolves inside the root.
+
 ## Sidebar
 
 - At the top, the server list (see [Server list](#server-list)).
-- A tree of the root: folders first, then files, case-insensitive. Only `.cjs .js .json .jsx .md .mjs .py .toml .ts .tsx .yaml .yml` files and `Makefile`s appear; empty folders and hidden entries (except the `.claude` and `.agents` folders) are left out. `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.ruff_cache`, `node_modules` and `.DS_Store` are hidden from the tree and from listings.
+- A tree of the root: every file the walk finds with the [config](#config)'s `[tree]` list, folders first, then files, case-insensitive. A folder with no files left in it isn't shown. Directory listings use the same list, one folder deep.
 - The current file is highlighted and its folders opened.
 - The filter box (`/` to focus, Esc to clear) hides files whose name doesn't match, and folders with no matches, without opening or closing any. A closed folder with matches turns accent-colored and shows its count.
 - The ☰ button hides the sidebar; the choice is kept in `localStorage`.

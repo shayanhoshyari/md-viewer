@@ -88,21 +88,31 @@ def test_resolve_safe(tmp_path: Path) -> None:
             resolve_safe(root, escape)
 
 
-def test_tree_shows_kept_dot_entries_only(tmp_path: Path) -> None:
-    for rel in [".claude/a.md", ".agents/b.md", ".hidden/c.md", ".gitignore", "d.md"]:
+def tree_links(root: Path) -> list[str]:
+    return re.findall(r'<a href="/([^"]+)"', tree_html(root))
+
+
+def test_tree_lists_every_file_but_the_tree_ignores(tmp_path: Path) -> None:
+    for rel in [".hidden/c.md", ".gitignore", "e.png", "Makefile", "tmp/t.log", "archive/a.md", "sub/archive/b.md"]:
         (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / rel).write_text("x\n")
-    tree = tree_html(tmp_path)
-    assert ".claude" in tree and ".agents" in tree and "d.md" in tree
-    assert ".hidden" not in tree
+    (tmp_path / "empty").mkdir()
+    (tmp_path / "md-viewer.toml").write_text('[tree]\nignore = ["tmp", "sub/archive"]\n[check]\nignore = ["archive"]\n')
+    assert tree_links(tmp_path) == [
+        ".hidden/c.md",
+        "archive/a.md",
+        ".gitignore",
+        "e.png",
+        "Makefile",
+        "md-viewer.toml",
+    ]
 
 
-def test_tree_lists_js_ts_and_makefile_sources(tmp_path: Path) -> None:
-    for name in ["a.js", "b.mjs", "c.ts", "d.tsx", "Makefile", "e.png"]:
-        (tmp_path / name).write_text("x\n")
-    tree = tree_html(tmp_path)
-    assert all(name in tree for name in ["a.js", "b.mjs", "c.ts", "d.tsx", "Makefile"])
-    assert "e.png" not in tree
+def test_tree_with_no_config_hides_the_default_junk(tmp_path: Path) -> None:
+    for rel in [".git/HEAD", ".venv/x.py", "__pycache__/a.pyc", ".DS_Store", "a.md"]:
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text("x\n")
+    assert tree_links(tmp_path) == ["a.md"]
 
 
 def test_intraline_marks_changed_words() -> None:
@@ -246,3 +256,11 @@ def test_changed_files_tree_compacts_single_folder_chains() -> None:
     summaries = re.findall(r"<summary>([^<]*)</summary>", out)
     assert summaries == ["src/pkg", "static"]
     assert out.index("src/pkg") < out.index("README.md")  # folders before files
+
+
+def test_a_bad_config_answers_500_with_its_message(tmp_path: Path) -> None:
+    (tmp_path / "a.md").write_text("# A\n")
+    (tmp_path / "md-viewer.toml").write_text('[tree]\nignore = "a"\n')
+    response = TestClient(create_app(tmp_path)).get("/a.md")
+    assert response.status_code == 500
+    assert response.text == f"{tmp_path / 'md-viewer.toml'}: [tree] ignore is not a list of strings"
