@@ -493,8 +493,8 @@ if (scmToggle) {
 })();
 
 // Read aloud: on a rendered page, a selection shows a 🔊 button by its end; clicking it speaks the
-// selection with the browser's speech. Text with hanzi speaks only its Chinese runs, with a Chinese
-// voice. While speaking the button shows ⏹ and stays, so a click always stops it.
+// selection with the browser's speech, always with a Chinese voice (English too, with its accent).
+// Text with hanzi speaks only its Chinese runs. While speaking the button shows ⏹ and stays, so a click always stops it.
 (function () {
   var doc = document.querySelector('.markdown-body[data-notes-version]');
   if (!doc || !window.speechSynthesis) return;
@@ -598,11 +598,10 @@ if (scmToggle) {
       parts = chunks(text);
     }
     if (!parts.length) return;
-    var voice = chinese ? chineseVoice() : null;
-    var lang = chinese ? 'zh-CN' : (document.documentElement.lang || navigator.language);
+    var voice = chineseVoice();
     utterances = parts.map(function (part, i) {
       var u = new SpeechSynthesisUtterance(part);
-      u.lang = lang;
+      u.lang = 'zh-CN';
       if (voice) u.voice = voice;
       u.rate = chinese ? 0.85 : 1;
       u.onerror = function () { finish(id); };

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.25.0 - 2026-11-24
+
+- Read aloud speaks English with the Chinese voice too, instead of the browser's default English voice, which on macOS is the novelty voice Albert.
+
 ## 0.24.0 - 2026-11-24
 
 - Read aloud: selecting text on a rendered page shows a 🔊 button that speaks it with the browser's speech, and ⏹ to stop. Text with hanzi speaks only its Chinese, with a Chinese voice (Premium or Enhanced first, then Google, then Tingting) at 0.85 speed. With an online voice the selected text goes to its provider.

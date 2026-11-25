@@ -196,10 +196,10 @@ side: it is all in `client.js`, and absent where the browser has no `speechSynth
   translations beside them are skipped; otherwise all of it.
 - **Chunks**: one utterance per sentence (split after `。！？.!?` and at newlines), since Chrome cuts
   off a long utterance.
-- **Voice**: for Chinese, `lang` `zh-CN`, rate 0.85, and the first `zh-CN` voice whose name has
-  `Premium`, then `Enhanced`, then `Google`, then `Tingting`, else any `zh-CN` voice (macOS also
-  ships novelty voices, which is why the ranking names voices). Other text: the page's language or
-  the browser's, its default voice, rate 1.
+- **Voice**: always `lang` `zh-CN` and the first `zh-CN` voice whose name has `Premium`, then
+  `Enhanced`, then `Google`, then `Tingting`, else any `zh-CN` voice. English is read by the same
+  Chinese voice, with its accent: left to Chrome, English got the first `en-US` voice, which on
+  macOS is the novelty voice Albert. Rate 0.85 for Chinese, 1 for other text.
 - Browsers allow speech only after a user gesture; the click on 🔊 is one.
 
 ## Edit
